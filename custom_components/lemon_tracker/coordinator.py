@@ -84,8 +84,8 @@ class LemonTrackerCoordinator(DataUpdateCoordinator[dict[str, Package]]):
         # 2. Update active packages via 17track
         await self._update_tracking()
 
-        # 3. Auto-archive delivered
-        self._auto_archive()
+        # 3. Auto-remove delivered
+        await self._auto_remove_delivered()
 
         # 4. Save to storage
         await self.store.async_save()
@@ -169,20 +169,28 @@ class LemonTrackerCoordinator(DataUpdateCoordinator[dict[str, Package]]):
         elapsed = datetime.now() - self._last_email_check
         return elapsed >= timedelta(minutes=self.email_interval_minutes)
 
-    def _auto_archive(self) -> None:
-        """Archive delivered packages after configured delay."""
+    async def _auto_remove_delivered(self) -> None:
+        """Remove delivered packages after configured delay."""
         if self.archive_after_days <= 0:
             return
 
         cutoff = datetime.now() - timedelta(days=self.archive_after_days)
+        to_remove: list[str] = []
         for pkg in list(self.store.active_packages.values()):
             if (
                 pkg.status == PackageStatus.DELIVERED
                 and pkg.delivered_at
                 and pkg.delivered_at < cutoff
             ):
-                pkg.archived = True
-                _LOGGER.info("Auto-archived package %s", pkg.display_name)
+                to_remove.append(pkg.tracking_number)
+
+        for number in to_remove:
+            self.store.remove_package(number)
+            try:
+                await self.api_client.stop_tracking(number)
+            except Api17TrackError as err:
+                _LOGGER.warning("Failed to stop 17track for %s: %s", number, err)
+            _LOGGER.info("Auto-removed delivered package %s", number)
 
     async def add_package(
         self,
