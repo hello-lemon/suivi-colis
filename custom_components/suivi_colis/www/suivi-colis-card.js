@@ -207,7 +207,7 @@ class SuiviColisCard extends HTMLElement {
           }
           .package {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 12px;
             padding: 10px 0;
             border-bottom: 1px solid var(--lt-border);
@@ -220,12 +220,14 @@ class SuiviColisCard extends HTMLElement {
             height: 24px;
             border-radius: 4px;
             flex-shrink: 0;
+            margin-top: 2px;
           }
           .carrier-icon-placeholder {
             width: 24px;
             height: 24px;
             border-radius: 4px;
             flex-shrink: 0;
+            margin-top: 2px;
             background: var(--lt-border);
             display: flex;
             align-items: center;
@@ -259,6 +261,7 @@ class SuiviColisCard extends HTMLElement {
           }
           .chip {
             flex-shrink: 0;
+            margin-top: 2px;
             padding: 3px 10px;
             border-radius: 12px;
             font-size: 11px;
