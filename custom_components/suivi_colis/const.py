@@ -12,6 +12,7 @@ CONF_IMAP_USER = "imap_user"
 CONF_IMAP_PASSWORD = "imap_password"
 CONF_IMAP_FOLDER = "imap_folder"
 CONF_IMAP_SSL = "imap_ssl"
+CONF_IMAP_DEDICATED = "imap_dedicated"
 CONF_ARCHIVE_AFTER_DAYS = "archive_after_days"
 CONF_EMAIL_INTERVAL = "email_interval"
 

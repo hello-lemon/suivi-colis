@@ -19,6 +19,7 @@ from .const import (
     CONF_IMAP_PASSWORD,
     CONF_IMAP_PORT,
     CONF_IMAP_SERVER,
+    CONF_IMAP_DEDICATED,
     CONF_IMAP_SSL,
     CONF_IMAP_USER,
     DEFAULT_ARCHIVE_AFTER_DAYS,
@@ -147,6 +148,7 @@ class SuiviColisCoordinator(DataUpdateCoordinator[dict[str, Package]]):
                     password=self.config[CONF_IMAP_PASSWORD],
                     folder=self.config.get(CONF_IMAP_FOLDER, "INBOX"),
                     ssl=self.config.get(CONF_IMAP_SSL, True),
+                    dedicated=self.config.get(CONF_IMAP_DEDICATED, False),
                     known_numbers=known,
                 )
             )
@@ -272,6 +274,7 @@ def _run_imap_fetch(
     password: str,
     folder: str,
     ssl: bool,
+    dedicated: bool,
     known_numbers: set[str],
 ) -> list[ExtractedPackage]:
     """Synchronous wrapper for IMAP fetch (runs in executor)."""
@@ -279,7 +282,7 @@ def _run_imap_fetch(
     from datetime import datetime as dt, timedelta as td
     import re
 
-    from .carrier_detect import detect_carrier_from_email
+    from .carrier_detect import detect_carrier_from_email, detect_carrier_from_number
     from .const import TRACKING_NUMBER_PATTERNS
 
     results: list[ExtractedPackage] = []
@@ -292,11 +295,19 @@ def _run_imap_fetch(
 
             for msg in mailbox.fetch(AND(date_gte=since_date), limit=50, reverse=True):
                 sender = msg.from_ or ""
-                carrier = detect_carrier_from_email(sender)
-                if carrier == "unknown":
-                    continue
+                subject = msg.subject or ""
 
-                text = f"{msg.subject or ''}\n{msg.text or ''}\n{msg.html or ''}"
+                if dedicated:
+                    # Dedicated mailbox: parse ALL emails
+                    carrier_from_email = detect_carrier_from_email(sender)
+                else:
+                    # Personal mailbox: only process known carrier senders
+                    carrier_from_email = detect_carrier_from_email(sender)
+                    if carrier_from_email == "unknown":
+                        continue
+
+                # Extract tracking numbers — subject first, then body
+                text = f"{subject}\n{msg.text or ''}\n{msg.html or ''}"
                 found: set[str] = set()
                 for pattern in TRACKING_NUMBER_PATTERNS:
                     for match in re.finditer(pattern, text, re.IGNORECASE):
@@ -308,20 +319,28 @@ def _run_imap_fetch(
                         if len(number) >= 10:
                             found.add(number)
 
-                subject = msg.subject or ""
-                name = subject.strip()[:60] or carrier.capitalize()
+                name = subject.strip()[:60]
 
                 for number in found:
                     if number not in known_numbers:
+                        # Determine carrier: from email sender, or from tracking number format
+                        carrier = carrier_from_email
+                        if carrier == "unknown":
+                            carrier = detect_carrier_from_number(number)
                         results.append(
                             ExtractedPackage(
                                 tracking_number=number,
                                 carrier=carrier,
-                                friendly_name=name,
+                                friendly_name=name or carrier.capitalize(),
                                 source_email=sender,
                             )
                         )
                         known_numbers.add(number)
+
+                # Mark as seen in dedicated mode
+                if dedicated and found:
+                    mailbox.flag(msg.uid, [r'\Seen'], True)
+
     except Exception as err:
         _LOGGER.error("IMAP fetch error: %s", err)
 

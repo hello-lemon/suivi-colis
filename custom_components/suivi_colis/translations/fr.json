@@ -17,7 +17,8 @@
           "imap_user": "Identifiant",
           "imap_password": "Mot de passe",
           "imap_folder": "Dossier",
-          "imap_ssl": "Utiliser SSL"
+          "imap_ssl": "Utiliser SSL",
+          "imap_dedicated": "Boîte dédiée (analyse tous les mails, pas seulement les transporteurs connus)"
         }
       }
     },
@@ -52,7 +53,8 @@
           "imap_user": "Identifiant",
           "imap_password": "Mot de passe",
           "imap_folder": "Dossier",
-          "imap_ssl": "Utiliser SSL"
+          "imap_ssl": "Utiliser SSL",
+          "imap_dedicated": "Boîte dédiée (analyse tous les mails, pas seulement les transporteurs connus)"
         }
       }
     }

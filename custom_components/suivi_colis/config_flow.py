@@ -15,6 +15,7 @@ from .const import (
     CONF_API_KEY,
     CONF_ARCHIVE_AFTER_DAYS,
     CONF_EMAIL_INTERVAL,
+    CONF_IMAP_DEDICATED,
     CONF_IMAP_FOLDER,
     CONF_IMAP_PASSWORD,
     CONF_IMAP_PORT,
@@ -121,6 +122,9 @@ class SuiviColisConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                             CONF_IMAP_FOLDER, DEFAULT_IMAP_FOLDER
                         ),
                         CONF_IMAP_SSL: ssl,
+                        CONF_IMAP_DEDICATED: user_input.get(
+                            CONF_IMAP_DEDICATED, False
+                        ),
                     }
                 )
                 return self.async_create_entry(
@@ -144,6 +148,7 @@ class SuiviColisConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         CONF_IMAP_FOLDER, default=DEFAULT_IMAP_FOLDER
                     ): str,
                     vol.Optional(CONF_IMAP_SSL, default=DEFAULT_IMAP_SSL): bool,
+                    vol.Optional(CONF_IMAP_DEDICATED, default=False): bool,
                 }
             ),
             errors=errors,
@@ -252,6 +257,9 @@ class SuiviColisOptionsFlow(config_entries.OptionsFlow):
                             CONF_IMAP_FOLDER, DEFAULT_IMAP_FOLDER
                         ),
                         CONF_IMAP_SSL: ssl,
+                        CONF_IMAP_DEDICATED: user_input.get(
+                            CONF_IMAP_DEDICATED, False
+                        ),
                     }
                 )
                 self.hass.config_entries.async_update_entry(
@@ -291,6 +299,10 @@ class SuiviColisOptionsFlow(config_entries.OptionsFlow):
                     vol.Optional(
                         CONF_IMAP_SSL,
                         default=current.get(CONF_IMAP_SSL, DEFAULT_IMAP_SSL),
+                    ): bool,
+                    vol.Optional(
+                        CONF_IMAP_DEDICATED,
+                        default=current.get(CONF_IMAP_DEDICATED, False),
                     ): bool,
                 }
             ),

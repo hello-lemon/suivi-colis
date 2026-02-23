@@ -17,7 +17,8 @@
           "imap_user": "Username",
           "imap_password": "Password",
           "imap_folder": "Folder",
-          "imap_ssl": "Use SSL"
+          "imap_ssl": "Use SSL",
+          "imap_dedicated": "Dedicated mailbox (parse all emails, not just known carriers)"
         }
       }
     },
@@ -52,7 +53,8 @@
           "imap_user": "Username",
           "imap_password": "Password",
           "imap_folder": "Folder",
-          "imap_ssl": "Use SSL"
+          "imap_ssl": "Use SSL",
+          "imap_dedicated": "Dedicated mailbox (parse all emails, not just known carriers)"
         }
       }
     }
