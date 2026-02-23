@@ -137,44 +137,79 @@ class Api17TrackClient:
 
         for item in accepted:
             number = item.get("number", "")
-            track = item.get("track", {})
-            output[number] = self._parse_track_data(track)
+            track_info = item.get("track_info", {})
+            output[number] = self._parse_track_data(track_info)
 
         return output
 
-    def _parse_track_data(self, track: dict) -> dict:
-        """Parse 17track track data into our format."""
-        latest = track.get("z0", {})  # Latest status info
-        status_code = latest.get("s", 0)
-        status = STATUS_17TRACK_MAP.get(status_code, PackageStatus.UNKNOWN)
+    def _parse_track_data(self, track_info: dict) -> dict:
+        """Parse 17track v2.2 track_info into our format."""
+        # Status mapping from 17track v2.2 string statuses
+        status_map = {
+            "NotFound": PackageStatus.NOT_FOUND,
+            "InfoReceived": PackageStatus.INFO_RECEIVED,
+            "InTransit": PackageStatus.IN_TRANSIT,
+            "OutForDelivery": PackageStatus.OUT_FOR_DELIVERY,
+            "AvailableForPickup": PackageStatus.AVAILABLE_FOR_PICKUP,
+            "Delivered": PackageStatus.DELIVERED,
+            "DeliveryFailure": PackageStatus.DELIVERY_FAILURE,
+            "Exception": PackageStatus.EXCEPTION,
+            "Expired": PackageStatus.EXPIRED,
+        }
 
-        # Parse events from z1 (detailed tracking)
+        # Parse latest status
+        latest_status = track_info.get("latest_status", {})
+        status_str = latest_status.get("status", "NotFound")
+        status = status_map.get(status_str, PackageStatus.UNKNOWN)
+
+        # Parse events from all providers
         events: list[TrackingEvent] = []
-        for event_data in track.get("z1", []):
-            try:
-                ts = event_data.get("a", "")
-                timestamp = datetime.fromisoformat(ts) if ts else datetime.now()
-                events.append(
-                    TrackingEvent(
-                        timestamp=timestamp,
-                        description=event_data.get("z", ""),
-                        location=event_data.get("c", ""),
+        tracking = track_info.get("tracking", {})
+        for provider in tracking.get("providers", []):
+            for event_data in provider.get("events", []):
+                try:
+                    ts = event_data.get("time_iso", "")
+                    timestamp = datetime.fromisoformat(ts) if ts else datetime.now()
+                    location = event_data.get("location") or ""
+                    if not location:
+                        addr = event_data.get("address", {})
+                        parts = [
+                            addr.get("city") or "",
+                            addr.get("state") or "",
+                            addr.get("country") or "",
+                        ]
+                        location = ", ".join(p for p in parts if p)
+                    events.append(
+                        TrackingEvent(
+                            timestamp=timestamp,
+                            description=event_data.get("description", ""),
+                            location=location,
+                        )
                     )
-                )
-            except (ValueError, TypeError):
-                continue
+                except (ValueError, TypeError):
+                    continue
 
         # Sort events newest first
         events.sort(key=lambda e: e.timestamp, reverse=True)
 
-        info_text = events[0].description if events else ""
-        location = events[0].location if events else ""
+        # Latest event info
+        latest_event = track_info.get("latest_event", {})
+        info_text = latest_event.get("description", "")
+        if not info_text and events:
+            info_text = events[0].description
+        location = latest_event.get("location") or ""
+        if not location and events:
+            location = events[0].location
+
+        # Carrier name from misc_info
+        carrier = track_info.get("misc_info", {}).get("service_type", "")
 
         return {
             "status": status,
             "info_text": info_text,
             "location": location,
             "events": events,
+            "carrier": carrier,
         }
 
     async def stop_tracking(self, tracking_number: str) -> bool:

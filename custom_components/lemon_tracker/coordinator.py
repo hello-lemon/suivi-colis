@@ -125,6 +125,9 @@ class LemonTrackerCoordinator(DataUpdateCoordinator[dict[str, Package]]):
             pkg.location = data["location"]
             pkg.events = data["events"]
             pkg.last_updated = now
+            # Update carrier from 17track if we didn't know it
+            if data.get("carrier") and (pkg.carrier == "unknown" or not pkg.carrier):
+                pkg.carrier = data["carrier"]
 
             if pkg.status == PackageStatus.DELIVERED and old_status != PackageStatus.DELIVERED:
                 pkg.delivered_at = now
