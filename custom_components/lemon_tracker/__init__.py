@@ -1,0 +1,163 @@
+"""Lemon Tracker — Package tracking integration for Home Assistant."""
+
+from __future__ import annotations
+
+import logging
+
+import aiohttp
+import voluptuous as vol
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.helpers import config_validation as cv
+
+from .api_17track import Api17TrackClient
+from .const import CONF_API_KEY, DOMAIN
+from .coordinator import LemonTrackerCoordinator
+from .store import LemonTrackerStore
+
+_LOGGER = logging.getLogger(__name__)
+
+PLATFORMS = ["sensor"]
+
+SERVICE_ADD_PACKAGE = "add_package"
+SERVICE_REMOVE_PACKAGE = "remove_package"
+SERVICE_REFRESH = "refresh"
+SERVICE_ARCHIVE_DELIVERED = "archive_delivered"
+
+ADD_PACKAGE_SCHEMA = vol.Schema(
+    {
+        vol.Required("tracking_number"): cv.string,
+        vol.Optional("friendly_name", default=""): cv.string,
+        vol.Optional("carrier", default=""): cv.string,
+    }
+)
+
+REMOVE_PACKAGE_SCHEMA = vol.Schema(
+    {
+        vol.Required("tracking_number"): cv.string,
+    }
+)
+
+
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Set up Lemon Tracker from a config entry."""
+    hass.data.setdefault(DOMAIN, {})
+
+    # Create HTTP session and API client
+    session = aiohttp.ClientSession()
+    api_client = Api17TrackClient(session, entry.data[CONF_API_KEY])
+
+    # Load stored packages
+    store = LemonTrackerStore(hass)
+    await store.async_load()
+
+    # Create coordinator
+    coordinator = LemonTrackerCoordinator(
+        hass,
+        api_client=api_client,
+        store=store,
+        config=dict(entry.data),
+        options=dict(entry.options),
+    )
+
+    # Listen for option updates
+    entry.async_on_unload(entry.add_update_listener(_async_options_updated))
+
+    # Store references
+    hass.data[DOMAIN][entry.entry_id] = coordinator
+    hass.data[DOMAIN]["session"] = session
+
+    # Initial refresh
+    await coordinator.async_config_entry_first_refresh()
+
+    # Set up platforms
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
+    # Register services
+    _register_services(hass, coordinator)
+
+    return True
+
+
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Unload a config entry."""
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+
+    if unload_ok:
+        hass.data[DOMAIN].pop(entry.entry_id, None)
+        session = hass.data[DOMAIN].pop("session", None)
+        if session:
+            await session.close()
+
+        # Remove services if no entries left
+        remaining = [
+            e for e in hass.config_entries.async_entries(DOMAIN)
+            if e.entry_id != entry.entry_id
+        ]
+        if not remaining:
+            for service in [
+                SERVICE_ADD_PACKAGE,
+                SERVICE_REMOVE_PACKAGE,
+                SERVICE_REFRESH,
+                SERVICE_ARCHIVE_DELIVERED,
+            ]:
+                hass.services.async_remove(DOMAIN, service)
+
+    return unload_ok
+
+
+async def _async_options_updated(
+    hass: HomeAssistant, entry: ConfigEntry
+) -> None:
+    """Handle options update."""
+    coordinator: LemonTrackerCoordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator.options = dict(entry.options)
+
+
+def _register_services(
+    hass: HomeAssistant, coordinator: LemonTrackerCoordinator
+) -> None:
+    """Register integration services."""
+
+    async def handle_add_package(call: ServiceCall) -> None:
+        tracking_number = call.data["tracking_number"]
+        friendly_name = call.data.get("friendly_name", "")
+        carrier = call.data.get("carrier", "")
+        result = await coordinator.add_package(
+            tracking_number=tracking_number,
+            carrier=carrier,
+            friendly_name=friendly_name,
+        )
+        if result:
+            _LOGGER.info("Added package %s", tracking_number)
+        else:
+            _LOGGER.warning("Failed to add package %s", tracking_number)
+
+    async def handle_remove_package(call: ServiceCall) -> None:
+        tracking_number = call.data["tracking_number"]
+        result = await coordinator.remove_package(tracking_number)
+        if result:
+            _LOGGER.info("Removed package %s", tracking_number)
+        else:
+            _LOGGER.warning("Package %s not found", tracking_number)
+
+    async def handle_refresh(call: ServiceCall) -> None:
+        await coordinator.async_request_refresh()
+
+    async def handle_archive_delivered(call: ServiceCall) -> None:
+        count = await coordinator.archive_delivered()
+        _LOGGER.info("Archived %d delivered packages", count)
+
+    if not hass.services.has_service(DOMAIN, SERVICE_ADD_PACKAGE):
+        hass.services.async_register(
+            DOMAIN, SERVICE_ADD_PACKAGE, handle_add_package, schema=ADD_PACKAGE_SCHEMA
+        )
+        hass.services.async_register(
+            DOMAIN, SERVICE_REMOVE_PACKAGE, handle_remove_package, schema=REMOVE_PACKAGE_SCHEMA
+        )
+        hass.services.async_register(
+            DOMAIN, SERVICE_REFRESH, handle_refresh
+        )
+        hass.services.async_register(
+            DOMAIN, SERVICE_ARCHIVE_DELIVERED, handle_archive_delivered
+        )

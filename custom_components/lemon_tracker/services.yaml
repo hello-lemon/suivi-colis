@@ -1,0 +1,62 @@
+add_package:
+  name: Ajouter un colis
+  description: Ajouter un numéro de suivi à tracker
+  fields:
+    tracking_number:
+      name: Numéro de suivi
+      description: Le numéro de suivi du colis
+      required: true
+      example: "XX123456789FR"
+      selector:
+        text:
+    friendly_name:
+      name: Nom
+      description: Nom personnalisé pour le colis (optionnel)
+      required: false
+      example: "Clavier MX Keys"
+      selector:
+        text:
+    carrier:
+      name: Transporteur
+      description: "Transporteur (optionnel, détecté automatiquement)"
+      required: false
+      example: "chronopost"
+      selector:
+        select:
+          options:
+            - label: "Auto-detect"
+              value: ""
+            - label: "Chronopost"
+              value: "chronopost"
+            - label: "Colissimo"
+              value: "colissimo"
+            - label: "La Poste"
+              value: "laposte"
+            - label: "DHL"
+              value: "dhl"
+            - label: "UPS"
+              value: "ups"
+            - label: "Amazon"
+              value: "amazon"
+            - label: "Cainiao"
+              value: "cainiao"
+
+remove_package:
+  name: Supprimer un colis
+  description: Arrêter le suivi d'un colis
+  fields:
+    tracking_number:
+      name: Numéro de suivi
+      description: Le numéro de suivi à supprimer
+      required: true
+      example: "XX123456789FR"
+      selector:
+        text:
+
+refresh:
+  name: Rafraîchir
+  description: Forcer une mise à jour immédiate de tous les colis
+
+archive_delivered:
+  name: Archiver les livrés
+  description: Archiver tous les colis marqués comme livrés

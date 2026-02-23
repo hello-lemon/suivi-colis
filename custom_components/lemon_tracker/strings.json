@@ -1,0 +1,41 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "17track API Key",
+        "description": "Enter your 17track API key. Get one for free at https://api.17track.net",
+        "data": {
+          "api_key": "API Key"
+        }
+      },
+      "imap": {
+        "title": "Email Tracking (Optional)",
+        "description": "Configure IMAP to automatically detect tracking numbers from emails. Leave server empty to skip.",
+        "data": {
+          "imap_server": "IMAP Server",
+          "imap_port": "Port",
+          "imap_user": "Username",
+          "imap_password": "Password",
+          "imap_folder": "Folder",
+          "imap_ssl": "Use SSL"
+        }
+      }
+    },
+    "error": {
+      "invalid_api_key": "Invalid 17track API key",
+      "cannot_connect": "Cannot connect to 17track API",
+      "imap_connection_failed": "IMAP connection failed"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Lemon Tracker Options",
+        "data": {
+          "archive_after_days": "Auto-archive delivered after (days, 0 = disabled)",
+          "email_interval": "Email check interval (minutes)"
+        }
+      }
+    }
+  }
+}

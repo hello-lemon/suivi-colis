@@ -1,0 +1,11 @@
+{
+  "domain": "lemon_tracker",
+  "name": "Lemon Tracker",
+  "codeowners": ["@hellolemon"],
+  "config_flow": true,
+  "documentation": "https://github.com/hellolemon/lemon-tracker",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/hellolemon/lemon-tracker/issues",
+  "requirements": ["imap-tools>=1.7.0"],
+  "version": "1.0.0"
+}

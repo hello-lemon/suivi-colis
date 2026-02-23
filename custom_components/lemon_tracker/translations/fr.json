@@ -1,0 +1,41 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Clé API 17track",
+        "description": "Entrez votre clé API 17track. Obtenez-en une gratuitement sur https://api.17track.net",
+        "data": {
+          "api_key": "Clé API"
+        }
+      },
+      "imap": {
+        "title": "Suivi par email (Optionnel)",
+        "description": "Configurez IMAP pour détecter automatiquement les numéros de suivi depuis vos emails. Laissez le serveur vide pour ignorer.",
+        "data": {
+          "imap_server": "Serveur IMAP",
+          "imap_port": "Port",
+          "imap_user": "Identifiant",
+          "imap_password": "Mot de passe",
+          "imap_folder": "Dossier",
+          "imap_ssl": "Utiliser SSL"
+        }
+      }
+    },
+    "error": {
+      "invalid_api_key": "Clé API 17track invalide",
+      "cannot_connect": "Impossible de se connecter à l'API 17track",
+      "imap_connection_failed": "Connexion IMAP échouée"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options Lemon Tracker",
+        "data": {
+          "archive_after_days": "Archiver les livrés après (jours, 0 = désactivé)",
+          "email_interval": "Intervalle de vérification emails (minutes)"
+        }
+      }
+    }
+  }
+}
