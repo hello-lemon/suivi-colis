@@ -25,7 +25,8 @@
     "error": {
       "invalid_api_key": "Invalid 17track API key",
       "cannot_connect": "Cannot connect to 17track API",
-      "imap_connection_failed": "IMAP connection failed"
+      "imap_connection_failed": "IMAP connection failed",
+      "unknown": "Unknown error, check logs"
     }
   },
   "options": {

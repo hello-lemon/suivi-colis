@@ -106,9 +106,12 @@ class SuiviColisConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             password = user_input[CONF_IMAP_PASSWORD]
             ssl = user_input.get(CONF_IMAP_SSL, DEFAULT_IMAP_SSL)
 
-            connected = await self.hass.async_add_executor_job(
-                partial(check_imap_connection, server, port, imap_user, password, ssl)
-            )
+            try:
+                connected = await self.hass.async_add_executor_job(
+                    partial(check_imap_connection, server, port, imap_user, password, ssl)
+                )
+            except Exception:
+                connected = False
             if not connected:
                 errors["base"] = "imap_connection_failed"
             else:
@@ -197,9 +200,12 @@ class SuiviColisOptionsFlow(config_entries.OptionsFlow):
                 from functools import partial
                 from .email_parser import check_imap_connection
 
-                connected = await self.hass.async_add_executor_job(
-                    partial(check_imap_connection, server, port, imap_user, password, ssl)
-                )
+                try:
+                    connected = await self.hass.async_add_executor_job(
+                        partial(check_imap_connection, server, port, imap_user, password, ssl)
+                    )
+                except Exception:
+                    connected = False
                 if not connected:
                     errors["base"] = "imap_connection_failed"
                 else:

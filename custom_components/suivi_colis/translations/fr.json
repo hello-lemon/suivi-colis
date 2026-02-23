@@ -25,7 +25,8 @@
     "error": {
       "invalid_api_key": "Clé API 17track invalide",
       "cannot_connect": "Impossible de se connecter à l'API 17track",
-      "imap_connection_failed": "Connexion IMAP échouée"
+      "imap_connection_failed": "Connexion IMAP échouée",
+      "unknown": "Erreur inconnue, vérifiez les logs"
     }
   },
   "options": {
