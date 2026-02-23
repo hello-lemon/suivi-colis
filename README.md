@@ -1,4 +1,4 @@
-# Lemon Tracker
+# Suivi de Colis
 
 Custom Home Assistant integration for package tracking via [17track API v2.2](https://api.17track.net).
 
@@ -18,7 +18,7 @@ Tracks packages from 1200+ carriers (Chronopost, Colissimo, DHL, UPS, Amazon, Ca
 ### HACS (recommended)
 
 1. Add this repository as a custom repository in HACS
-2. Install "Lemon Tracker"
+2. Install "Suivi de Colis"
 3. Restart Home Assistant
 4. Add integration via Settings > Integrations
 
@@ -69,7 +69,7 @@ data:
 Une carte Lovelace custom est incluse et s'enregistre automatiquement au démarrage.
 
 1. Aller sur un dashboard → **Ajouter une carte**
-2. Chercher **"Lemon Tracker"** dans le picker
+2. Chercher **"Suivi de Colis"** dans le picker
 3. Aucune configuration nécessaire — la carte détecte automatiquement les colis
 
 La carte affiche pour chaque colis : logo transporteur, numéro de suivi, statut coloré, dernière info et localisation. Un bouton **"+"** permet d'ajouter un colis directement depuis la carte.

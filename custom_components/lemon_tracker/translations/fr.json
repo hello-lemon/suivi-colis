@@ -30,7 +30,7 @@
   "options": {
     "step": {
       "init": {
-        "title": "Options Lemon Tracker",
+        "title": "Suivi de Colis — Options",
         "menu_options": {
           "general": "Paramètres généraux",
           "imap": "Configuration email (IMAP)"

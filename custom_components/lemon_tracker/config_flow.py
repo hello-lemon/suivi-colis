@@ -86,7 +86,7 @@ class LemonTrackerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if not user_input.get(CONF_IMAP_SERVER):
                 # Skip IMAP
                 return self.async_create_entry(
-                    title="Lemon Tracker",
+                    title="Suivi de Colis",
                     data=self._data,
                     options={
                         CONF_ARCHIVE_AFTER_DAYS: DEFAULT_ARCHIVE_AFTER_DAYS,
@@ -124,7 +124,7 @@ class LemonTrackerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     }
                 )
                 return self.async_create_entry(
-                    title="Lemon Tracker",
+                    title="Suivi de Colis",
                     data=self._data,
                     options={
                         CONF_ARCHIVE_AFTER_DAYS: DEFAULT_ARCHIVE_AFTER_DAYS,

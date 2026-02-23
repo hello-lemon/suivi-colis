@@ -1,6 +1,6 @@
 /**
- * Lemon Tracker Card — Custom Lovelace card for package tracking
- * Auto-discovers Lemon Tracker entities by tracking_number attribute
+ * Suivi de Colis Card — Custom Lovelace card for package tracking
+ * Auto-discovers Suivi de Colis entities by tracking_number attribute
  */
 
 const CARD_VERSION = "1.0.1";
@@ -119,7 +119,7 @@ class LemonTrackerCard extends HTMLElement {
       this._inputValue = "";
       this._render();
     } catch (e) {
-      console.error("Lemon Tracker: failed to add package", e);
+      console.error("Suivi de Colis: failed to add package", e);
     }
   }
 
@@ -275,7 +275,7 @@ class LemonTrackerCard extends HTMLElement {
         </style>
         <div class="header">
           <div style="display:flex;align-items:baseline;">
-            <h2>📦 Lemon Tracker</h2>
+            <h2>📦 Suivi de Colis</h2>
             <span class="count">${packages.length} colis</span>
           </div>
           <button class="add-btn" id="add-toggle" title="Ajouter un colis">+</button>
@@ -356,14 +356,14 @@ customElements.define("lemon-tracker-card-editor", LemonTrackerCardEditor);
 window.customCards = window.customCards || [];
 window.customCards.push({
   type: "lemon-tracker-card",
-  name: "Lemon Tracker",
+  name: "Suivi de Colis",
   description: "Suivi de colis avec détection automatique",
   preview: true,
   documentationURL: "https://github.com/hellolemon/lemon-tracker",
 });
 
 console.info(
-  `%c LEMON-TRACKER-CARD %c v${CARD_VERSION} `,
+  `%c SUIVI-DE-COLIS %c v${CARD_VERSION} `,
   "background:#FDD835;color:#000;font-weight:bold;padding:2px 6px;border-radius:4px 0 0 4px",
   "background:#333;color:#fff;padding:2px 6px;border-radius:0 4px 4px 0"
 );

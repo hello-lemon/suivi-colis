@@ -1,6 +1,6 @@
 {
   "domain": "lemon_tracker",
-  "name": "Lemon Tracker",
+  "name": "Suivi de Colis",
   "codeowners": ["@hellolemon"],
   "config_flow": true,
   "single_config_entry": true,
