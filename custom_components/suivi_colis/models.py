@@ -1,4 +1,4 @@
-"""Data models for Lemon Tracker."""
+"""Data models for Suivi de Colis."""
 
 from __future__ import annotations
 

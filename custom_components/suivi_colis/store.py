@@ -1,4 +1,4 @@
-"""Persistent storage for Lemon Tracker packages."""
+"""Persistent storage for Suivi de Colis packages."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from .models import Package
 _LOGGER = logging.getLogger(__name__)
 
 
-class LemonTrackerStore:
+class SuiviColisStore:
     """Manage package persistence via HA .storage."""
 
     def __init__(self, hass: HomeAssistant) -> None:

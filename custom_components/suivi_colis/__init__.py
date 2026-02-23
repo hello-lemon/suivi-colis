@@ -1,4 +1,4 @@
-"""Lemon Tracker — Package tracking integration for Home Assistant."""
+"""Suivi de Colis — Package tracking integration for Home Assistant."""
 
 from __future__ import annotations
 
@@ -14,12 +14,12 @@ from homeassistant.helpers import config_validation as cv
 
 from .api_17track import Api17TrackClient
 from .const import DOMAIN, CONF_API_KEY
-from .coordinator import LemonTrackerCoordinator
-from .store import LemonTrackerStore
+from .coordinator import SuiviColisCoordinator
+from .store import SuiviColisStore
 
 _LOGGER = logging.getLogger(__name__)
 
-CARD_JS_URL = f"/lemon_tracker/lemon-tracker-card.js"
+CARD_JS_URL = f"/suivi_colis/suivi-colis-card.js"
 CARD_JS_VERSION = "1.0.1"
 
 PLATFORMS = ["sensor"]
@@ -45,11 +45,11 @@ REMOVE_PACKAGE_SCHEMA = vol.Schema(
 
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
-    """Set up Lemon Tracker — register static files and Lovelace resource."""
-    # Serve www/ folder at /lemon_tracker/
+    """Set up Suivi de Colis — register static files and Lovelace resource."""
+    # Serve www/ folder at /suivi_colis/
     www_path = Path(__file__).parent / "www"
     await hass.http.async_register_static_paths(
-        [StaticPathConfig(CARD_JS_URL, str(www_path / "lemon-tracker-card.js"), cache_headers=False)]
+        [StaticPathConfig(CARD_JS_URL, str(www_path / "suivi-colis-card.js"), cache_headers=False)]
     )
 
     # Auto-register Lovelace resource (storage mode only)
@@ -75,18 +75,18 @@ async def _async_register_lovelace_resource(hass: HomeAssistant, url: str) -> No
                     await resources.async_update_item(
                         item["id"], {"url": url}
                     )
-                    _LOGGER.info("Updated Lemon Tracker card resource to %s", url)
+                    _LOGGER.info("Updated Suivi de Colis card resource to %s", url)
                 return
 
         # Register new resource
         await resources.async_create_item({"res_type": "module", "url": url})
-        _LOGGER.info("Registered Lemon Tracker card resource: %s", url)
+        _LOGGER.info("Registered Suivi de Colis card resource: %s", url)
     except Exception:
         _LOGGER.warning("Could not auto-register Lovelace resource, add manually: %s", url)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up Lemon Tracker from a config entry."""
+    """Set up Suivi de Colis from a config entry."""
     hass.data.setdefault(DOMAIN, {})
 
     # Create HTTP session and API client
@@ -94,11 +94,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     api_client = Api17TrackClient(session, entry.data[CONF_API_KEY])
 
     # Load stored packages
-    store = LemonTrackerStore(hass)
+    store = SuiviColisStore(hass)
     await store.async_load()
 
     # Create coordinator
-    coordinator = LemonTrackerCoordinator(
+    coordinator = SuiviColisCoordinator(
         hass,
         api_client=api_client,
         store=store,
@@ -156,12 +156,12 @@ async def _async_options_updated(
     hass: HomeAssistant, entry: ConfigEntry
 ) -> None:
     """Handle options update."""
-    coordinator: LemonTrackerCoordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator: SuiviColisCoordinator = hass.data[DOMAIN][entry.entry_id]
     coordinator.options = dict(entry.options)
 
 
 def _register_services(
-    hass: HomeAssistant, coordinator: LemonTrackerCoordinator
+    hass: HomeAssistant, coordinator: SuiviColisCoordinator
 ) -> None:
     """Register integration services."""
 

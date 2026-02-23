@@ -1,7 +1,7 @@
-"""Constants for Lemon Tracker."""
+"""Constants for Suivi de Colis."""
 
-DOMAIN = "lemon_tracker"
-STORAGE_KEY = "lemon_tracker_packages"
+DOMAIN = "suivi_colis"
+STORAGE_KEY = "suivi_colis_packages"
 STORAGE_VERSION = 1
 
 # Config keys

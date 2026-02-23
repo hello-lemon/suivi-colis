@@ -1,4 +1,4 @@
-"""Config flow for Lemon Tracker."""
+"""Config flow for Suivi de Colis."""
 
 from __future__ import annotations
 
@@ -32,8 +32,8 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 
-class LemonTrackerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for Lemon Tracker."""
+class SuiviColisConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+    """Handle a config flow for Suivi de Colis."""
 
     VERSION = 1
 
@@ -153,13 +153,13 @@ class LemonTrackerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     @callback
     def async_get_options_flow(
         config_entry: config_entries.ConfigEntry,
-    ) -> LemonTrackerOptionsFlow:
+    ) -> SuiviColisOptionsFlow:
         """Get options flow."""
-        return LemonTrackerOptionsFlow(config_entry)
+        return SuiviColisOptionsFlow(config_entry)
 
 
-class LemonTrackerOptionsFlow(config_entries.OptionsFlow):
-    """Handle options for Lemon Tracker."""
+class SuiviColisOptionsFlow(config_entries.OptionsFlow):
+    """Handle options for Suivi de Colis."""
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         """Initialize."""

@@ -30,7 +30,7 @@ const CARRIER_DOMAINS = {
   cainiao: "global.cainiao.com",
 };
 
-class LemonTrackerCard extends HTMLElement {
+class SuiviColisCard extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
@@ -52,7 +52,7 @@ class LemonTrackerCard extends HTMLElement {
   }
 
   static getConfigElement() {
-    return document.createElement("lemon-tracker-card-editor");
+    return document.createElement("suivi-colis-card-editor");
   }
 
   static getStubConfig() {
@@ -112,7 +112,7 @@ class LemonTrackerCard extends HTMLElement {
     const value = this._inputValue.trim();
     if (!value || !this._hass) return;
     try {
-      await this._hass.callService("lemon_tracker", "add_package", {
+      await this._hass.callService("suivi_colis", "add_package", {
         tracking_number: value,
       });
       this._showForm = false;
@@ -339,7 +339,7 @@ class LemonTrackerCard extends HTMLElement {
 }
 
 // Minimal editor
-class LemonTrackerCardEditor extends HTMLElement {
+class SuiviColisCardEditor extends HTMLElement {
   setConfig(config) {
     this._config = config;
   }
@@ -349,17 +349,17 @@ class LemonTrackerCardEditor extends HTMLElement {
   }
 }
 
-customElements.define("lemon-tracker-card", LemonTrackerCard);
-customElements.define("lemon-tracker-card-editor", LemonTrackerCardEditor);
+customElements.define("suivi-colis-card", SuiviColisCard);
+customElements.define("suivi-colis-card-editor", SuiviColisCardEditor);
 
 // Register in card picker
 window.customCards = window.customCards || [];
 window.customCards.push({
-  type: "lemon-tracker-card",
+  type: "suivi-colis-card",
   name: "Suivi de Colis",
   description: "Suivi de colis avec détection automatique",
   preview: true,
-  documentationURL: "https://github.com/hellolemon/lemon-tracker",
+  documentationURL: "https://github.com/hello-lemon/lemon-tracker",
 });
 
 console.info(

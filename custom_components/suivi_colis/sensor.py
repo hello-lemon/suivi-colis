@@ -1,4 +1,4 @@
-"""Sensor platform for Lemon Tracker."""
+"""Sensor platform for Suivi de Colis."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN, STATUS_ICONS
-from .coordinator import LemonTrackerCoordinator
+from .coordinator import SuiviColisCoordinator
 from .models import Package
 
 _LOGGER = logging.getLogger(__name__)
@@ -22,8 +22,8 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up Lemon Tracker sensors from config entry."""
-    coordinator: LemonTrackerCoordinator = hass.data[DOMAIN][entry.entry_id]
+    """Set up Suivi de Colis sensors from config entry."""
+    coordinator: SuiviColisCoordinator = hass.data[DOMAIN][entry.entry_id]
 
     # Track which sensors exist
     tracked: set[str] = set()
@@ -31,13 +31,13 @@ async def async_setup_entry(
     @callback
     def _async_add_new_sensors() -> None:
         """Add sensors for newly discovered packages."""
-        new_entities: list[LemonTrackerSensor] = []
+        new_entities: list[SuiviColisSensor] = []
 
         for tracking_number, package in coordinator.store.active_packages.items():
             if tracking_number not in tracked:
                 tracked.add(tracking_number)
                 new_entities.append(
-                    LemonTrackerSensor(coordinator, package, entry)
+                    SuiviColisSensor(coordinator, package, entry)
                 )
 
         # Remove archived from tracking set
@@ -58,14 +58,14 @@ async def async_setup_entry(
     )
 
 
-class LemonTrackerSensor(CoordinatorEntity[LemonTrackerCoordinator], SensorEntity):
+class SuiviColisSensor(CoordinatorEntity[SuiviColisCoordinator], SensorEntity):
     """Sensor for a single tracked package."""
 
     _attr_has_entity_name = False
 
     def __init__(
         self,
-        coordinator: LemonTrackerCoordinator,
+        coordinator: SuiviColisCoordinator,
         package: Package,
         entry: ConfigEntry,
     ) -> None:

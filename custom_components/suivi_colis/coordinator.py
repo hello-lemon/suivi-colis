@@ -1,4 +1,4 @@
-"""Data update coordinator for Lemon Tracker."""
+"""Data update coordinator for Suivi de Colis."""
 
 from __future__ import annotations
 
@@ -28,19 +28,19 @@ from .const import (
 )
 from .email_parser import ExtractedPackage, fetch_tracking_emails
 from .models import Package, PackageSource, PackageStatus
-from .store import LemonTrackerStore
+from .store import SuiviColisStore
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class LemonTrackerCoordinator(DataUpdateCoordinator[dict[str, Package]]):
+class SuiviColisCoordinator(DataUpdateCoordinator[dict[str, Package]]):
     """Coordinate updates for all tracked packages."""
 
     def __init__(
         self,
         hass: HomeAssistant,
         api_client: Api17TrackClient,
-        store: LemonTrackerStore,
+        store: SuiviColisStore,
         config: dict,
         options: dict,
     ) -> None:

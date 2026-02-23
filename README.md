@@ -7,7 +7,7 @@ Tracks packages from 1200+ carriers (Chronopost, Colissimo, DHL, UPS, Amazon, Ca
 ## Features
 
 - **1 sensor per package** with status, location, carrier, event timeline
-- **Manual add** via `lemon_tracker.add_package` service
+- **Manual add** via `suivi_colis.add_package` service
 - **Auto-detect carrier** from tracking number format
 - **Email IMAP** polling for automatic package discovery
 - **Auto-archive** delivered packages after configurable delay
@@ -24,7 +24,7 @@ Tracks packages from 1200+ carriers (Chronopost, Colissimo, DHL, UPS, Amazon, Ca
 
 ### Manual
 
-Copy `custom_components/lemon_tracker/` to your `config/custom_components/` directory.
+Copy `custom_components/suivi_colis/` to your `config/custom_components/` directory.
 
 ## Configuration
 
@@ -49,15 +49,15 @@ Configure an IMAP mailbox to auto-detect tracking numbers from shipping emails.
 
 | Service | Description |
 |---------|-------------|
-| `lemon_tracker.add_package` | Add a tracking number |
-| `lemon_tracker.remove_package` | Stop tracking a package |
-| `lemon_tracker.refresh` | Force immediate refresh |
-| `lemon_tracker.archive_delivered` | Archive all delivered packages |
+| `suivi_colis.add_package` | Add a tracking number |
+| `suivi_colis.remove_package` | Stop tracking a package |
+| `suivi_colis.refresh` | Force immediate refresh |
+| `suivi_colis.archive_delivered` | Archive all delivered packages |
 
 ### Example: Add a package
 
 ```yaml
-service: lemon_tracker.add_package
+service: suivi_colis.add_package
 data:
   tracking_number: "XX123456789FR"
   friendly_name: "Clavier MX Keys"
