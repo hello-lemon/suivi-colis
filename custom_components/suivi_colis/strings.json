@@ -32,22 +32,9 @@
     "step": {
       "init": {
         "title": "Suivi de Colis — Options",
-        "menu_options": {
-          "general": "General settings",
-          "imap": "Email (IMAP) settings"
-        }
-      },
-      "general": {
-        "title": "General Settings",
         "data": {
           "archive_after_days": "Auto-archive delivered after (days, 0 = disabled)",
-          "email_interval": "Email check interval (minutes)"
-        }
-      },
-      "imap": {
-        "title": "Email (IMAP) Settings",
-        "description": "Configure IMAP to auto-detect tracking numbers from emails. Leave server empty to disable.",
-        "data": {
+          "email_interval": "Email check interval (minutes)",
           "imap_server": "IMAP Server",
           "imap_port": "Port",
           "imap_user": "Username",

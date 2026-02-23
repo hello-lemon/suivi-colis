@@ -160,37 +160,85 @@ class SuiviColisConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         config_entry: config_entries.ConfigEntry,
     ) -> SuiviColisOptionsFlow:
         """Get options flow."""
-        return SuiviColisOptionsFlow(config_entry)
+        return SuiviColisOptionsFlow()
 
 
 class SuiviColisOptionsFlow(config_entries.OptionsFlow):
     """Handle options for Suivi de Colis."""
 
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        """Initialize."""
-        self.config_entry = config_entry
-
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.ConfigFlowResult:
-        """Menu: general options or IMAP config."""
-        return self.async_show_menu(
-            step_id="init",
-            menu_options=["general", "imap"],
-        )
+        """All options in one form."""
+        errors: dict[str, str] = {}
 
-    async def async_step_general(
-        self, user_input: dict[str, Any] | None = None
-    ) -> config_entries.ConfigFlowResult:
-        """General options."""
         if user_input is not None:
-            # Merge with existing options (keep IMAP settings)
-            new_options = dict(self.config_entry.options)
-            new_options.update(user_input)
-            return self.async_create_entry(title="", data=new_options)
+            # Split: IMAP fields go to data, rest to options
+            server = user_input.get(CONF_IMAP_SERVER, "").strip()
+
+            # Update options (general settings)
+            new_options = {
+                CONF_ARCHIVE_AFTER_DAYS: user_input.get(
+                    CONF_ARCHIVE_AFTER_DAYS, DEFAULT_ARCHIVE_AFTER_DAYS
+                ),
+                CONF_EMAIL_INTERVAL: user_input.get(
+                    CONF_EMAIL_INTERVAL, DEFAULT_EMAIL_INTERVAL
+                ),
+            }
+
+            # Update IMAP in data
+            if server:
+                port = user_input.get(CONF_IMAP_PORT, DEFAULT_IMAP_PORT)
+                imap_user = user_input.get(CONF_IMAP_USER, "")
+                password = user_input.get(CONF_IMAP_PASSWORD, "")
+                ssl = user_input.get(CONF_IMAP_SSL, DEFAULT_IMAP_SSL)
+
+                # Test connection
+                from functools import partial
+                from .email_parser import check_imap_connection
+
+                connected = await self.hass.async_add_executor_job(
+                    partial(check_imap_connection, server, port, imap_user, password, ssl)
+                )
+                if not connected:
+                    errors["base"] = "imap_connection_failed"
+                else:
+                    new_data = dict(self.config_entry.data)
+                    new_data.update(
+                        {
+                            CONF_IMAP_SERVER: server,
+                            CONF_IMAP_PORT: port,
+                            CONF_IMAP_USER: imap_user,
+                            CONF_IMAP_PASSWORD: password,
+                            CONF_IMAP_FOLDER: user_input.get(
+                                CONF_IMAP_FOLDER, DEFAULT_IMAP_FOLDER
+                            ),
+                            CONF_IMAP_SSL: ssl,
+                            CONF_IMAP_DEDICATED: user_input.get(
+                                CONF_IMAP_DEDICATED, False
+                            ),
+                        }
+                    )
+                    self.hass.config_entries.async_update_entry(
+                        self.config_entry, data=new_data
+                    )
+            else:
+                # Remove IMAP config if server is empty
+                new_data = {
+                    k: v for k, v in self.config_entry.data.items()
+                    if not k.startswith("imap_")
+                }
+                self.hass.config_entries.async_update_entry(
+                    self.config_entry, data=new_data
+                )
+
+            if not errors:
+                return self.async_create_entry(title="", data=new_options)
+
+        current = self.config_entry.data
 
         return self.async_show_form(
-            step_id="general",
+            step_id="init",
             data_schema=vol.Schema(
                 {
                     vol.Optional(
@@ -205,77 +253,6 @@ class SuiviColisOptionsFlow(config_entries.OptionsFlow):
                             CONF_EMAIL_INTERVAL, DEFAULT_EMAIL_INTERVAL
                         ),
                     ): vol.All(int, vol.Range(min=5, max=120)),
-                }
-            ),
-        )
-
-    async def async_step_imap(
-        self, user_input: dict[str, Any] | None = None
-    ) -> config_entries.ConfigFlowResult:
-        """IMAP configuration."""
-        errors: dict[str, str] = {}
-
-        if user_input is not None:
-            server = user_input.get(CONF_IMAP_SERVER, "").strip()
-
-            if not server:
-                # Remove IMAP config
-                new_data = {
-                    k: v for k, v in self.config_entry.data.items()
-                    if not k.startswith("imap_")
-                }
-                self.hass.config_entries.async_update_entry(
-                    self.config_entry, data=new_data
-                )
-                return self.async_create_entry(
-                    title="", data=dict(self.config_entry.options)
-                )
-
-            # Test IMAP connection
-            from functools import partial
-            from .email_parser import check_imap_connection
-
-            port = user_input.get(CONF_IMAP_PORT, DEFAULT_IMAP_PORT)
-            imap_user = user_input.get(CONF_IMAP_USER, "")
-            password = user_input.get(CONF_IMAP_PASSWORD, "")
-            ssl = user_input.get(CONF_IMAP_SSL, DEFAULT_IMAP_SSL)
-
-            connected = await self.hass.async_add_executor_job(
-                partial(check_imap_connection, server, port, imap_user, password, ssl)
-            )
-            if not connected:
-                errors["base"] = "imap_connection_failed"
-            else:
-                new_data = dict(self.config_entry.data)
-                new_data.update(
-                    {
-                        CONF_IMAP_SERVER: server,
-                        CONF_IMAP_PORT: port,
-                        CONF_IMAP_USER: imap_user,
-                        CONF_IMAP_PASSWORD: password,
-                        CONF_IMAP_FOLDER: user_input.get(
-                            CONF_IMAP_FOLDER, DEFAULT_IMAP_FOLDER
-                        ),
-                        CONF_IMAP_SSL: ssl,
-                        CONF_IMAP_DEDICATED: user_input.get(
-                            CONF_IMAP_DEDICATED, False
-                        ),
-                    }
-                )
-                self.hass.config_entries.async_update_entry(
-                    self.config_entry, data=new_data
-                )
-                return self.async_create_entry(
-                    title="", data=dict(self.config_entry.options)
-                )
-
-        # Pre-fill with existing IMAP config
-        current = self.config_entry.data
-
-        return self.async_show_form(
-            step_id="imap",
-            data_schema=vol.Schema(
-                {
                     vol.Optional(
                         CONF_IMAP_SERVER,
                         default=current.get(CONF_IMAP_SERVER, ""),
