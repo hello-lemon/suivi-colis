@@ -61,7 +61,7 @@ async def async_setup_entry(
 class LemonTrackerSensor(CoordinatorEntity[LemonTrackerCoordinator], SensorEntity):
     """Sensor for a single tracked package."""
 
-    _attr_has_entity_name = True
+    _attr_has_entity_name = False
 
     def __init__(
         self,
@@ -73,7 +73,7 @@ class LemonTrackerSensor(CoordinatorEntity[LemonTrackerCoordinator], SensorEntit
         super().__init__(coordinator)
         self._tracking_number = package.tracking_number
         self._attr_unique_id = f"{DOMAIN}_{package.tracking_number}"
-        self._attr_translation_key = "package"
+        self._attr_name = package.tracking_number
 
     @property
     def _package(self) -> Package | None:
@@ -84,14 +84,6 @@ class LemonTrackerSensor(CoordinatorEntity[LemonTrackerCoordinator], SensorEntit
     def available(self) -> bool:
         """Return True if entity is available."""
         return self._package is not None and not self._package.archived
-
-    @property
-    def name(self) -> str:
-        """Return the display name."""
-        pkg = self._package
-        if pkg:
-            return pkg.display_name
-        return self._tracking_number
 
     @property
     def native_value(self) -> str | None:
