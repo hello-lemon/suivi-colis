@@ -97,7 +97,7 @@ class LemonTrackerCoordinator(DataUpdateCoordinator[dict[str, Package]]):
         active = {
             k: v
             for k, v in self.store.active_packages.items()
-            if v.status != PackageStatus.DELIVERED
+            if v.status != PackageStatus.DELIVERED or v.last_updated is None
         }
 
         if not active:
