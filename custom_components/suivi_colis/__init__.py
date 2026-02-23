@@ -67,20 +67,27 @@ async def _async_register_lovelace_resource(hass: HomeAssistant, url: str) -> No
             _LOGGER.debug("Lovelace resources not available (YAML mode?), skip auto-register")
             return
 
-        # Check if already registered
+        # Clean up old lemon_tracker resources and check if already registered
+        found = False
         for item in resources.async_items():
-            if item.get("url", "").startswith(CARD_JS_URL):
-                # Update version if changed
-                if item["url"] != url:
+            item_url = item.get("url", "")
+            # Remove legacy lemon_tracker resource
+            if "/lemon_tracker/" in item_url or "lemon-tracker-card" in item_url:
+                await resources.async_delete_item(item["id"])
+                _LOGGER.info("Removed legacy lemon_tracker resource: %s", item_url)
+                continue
+            # Check if current resource already exists
+            if item_url.startswith(CARD_JS_URL):
+                if item_url != url:
                     await resources.async_update_item(
                         item["id"], {"url": url}
                     )
                     _LOGGER.info("Updated Suivi de Colis card resource to %s", url)
-                return
+                found = True
 
-        # Register new resource
-        await resources.async_create_item({"res_type": "module", "url": url})
-        _LOGGER.info("Registered Suivi de Colis card resource: %s", url)
+        if not found:
+            await resources.async_create_item({"res_type": "module", "url": url})
+            _LOGGER.info("Registered Suivi de Colis card resource: %s", url)
     except Exception:
         _LOGGER.warning("Could not auto-register Lovelace resource, add manually: %s", url)
 
