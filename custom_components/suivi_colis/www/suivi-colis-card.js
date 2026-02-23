@@ -359,7 +359,7 @@ window.customCards.push({
   name: "Suivi de Colis",
   description: "Suivi de colis avec détection automatique",
   preview: true,
-  documentationURL: "https://github.com/hello-lemon/lemon-tracker",
+  documentationURL: "https://github.com/hello-lemon/suivi-colis",
 });
 
 console.info(
