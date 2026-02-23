@@ -21,6 +21,39 @@ from .models import Package, PackageStatus, TrackingEvent
 
 _LOGGER = logging.getLogger(__name__)
 
+# Reverse mapping: 17track carrier code -> our carrier name
+CARRIER_17TRACK_REVERSE = {
+    4031: "chronopost",
+    4036: "colissimo",
+    100003: "dhl",
+    100002: "ups",
+    100143: "amazon",
+    190271: "cainiao",
+    # Common La Poste variants
+    4015: "laposte",
+    4016: "colissimo",
+}
+
+
+def _normalize_carrier_name(name: str) -> str:
+    """Normalize a carrier name from 17track to our format."""
+    name_lower = name.lower()
+    for keyword, carrier in {
+        "chronopost": "chronopost",
+        "colissimo": "colissimo",
+        "la poste": "colissimo",
+        "laposte": "colissimo",
+        "dhl": "dhl",
+        "ups": "ups",
+        "amazon": "amazon",
+        "cainiao": "cainiao",
+        "aliexpress": "cainiao",
+        "yanwen": "cainiao",
+    }.items():
+        if keyword in name_lower:
+            return carrier
+    return name_lower
+
 
 class Api17TrackError(Exception):
     """Base exception for 17track API errors."""
@@ -201,8 +234,31 @@ class Api17TrackClient:
         if not location and events:
             location = events[0].location
 
-        # Carrier name from misc_info
-        carrier = track_info.get("misc_info", {}).get("service_type", "")
+        # Carrier detection — try multiple fields
+        carrier = ""
+
+        # 1. From tracking providers (most reliable)
+        for provider in tracking.get("providers", []):
+            provider_info = provider.get("provider", {})
+            carrier_code = provider_info.get("key")
+            if carrier_code and not carrier:
+                carrier = CARRIER_17TRACK_REVERSE.get(carrier_code, "")
+            if not carrier:
+                carrier_name = provider_info.get("name", "")
+                if carrier_name:
+                    carrier = _normalize_carrier_name(carrier_name)
+
+        # 2. From misc_info.service_type (fallback)
+        if not carrier:
+            svc = track_info.get("misc_info", {}).get("service_type", "")
+            if svc:
+                carrier = _normalize_carrier_name(svc)
+
+        # 3. From misc_info.carrier_code
+        if not carrier:
+            code = track_info.get("misc_info", {}).get("carrier_code")
+            if code:
+                carrier = CARRIER_17TRACK_REVERSE.get(code, "")
 
         return {
             "status": status,
