@@ -1,81 +1,85 @@
 # Suivi de Colis
 
-Custom Home Assistant integration for package tracking via [17track API v2.2](https://api.17track.net).
+Intégration Home Assistant pour le suivi de colis via l'[API 17track v2.2](https://api.17track.net).
 
-Tracks packages from 1200+ carriers (Chronopost, Colissimo, DHL, UPS, Amazon, Cainiao...) with optional automatic detection from emails.
+Suivi de plus de 1200 transporteurs (Chronopost, Colissimo, DHL, UPS, Amazon, Cainiao…) avec détection automatique depuis les emails.
 
-## Features
+## Fonctionnalités
 
-- **1 sensor per package** with status, location, carrier, event timeline
-- **Manual add** via `suivi_colis.add_package` service
-- **Auto-detect carrier** from tracking number format
-- **Email IMAP** polling for automatic package discovery
-- **Auto-archive** delivered packages after configurable delay
-- **Dynamic icons** based on delivery status
+- **1 capteur par colis** : statut, localisation, transporteur, historique des événements
+- **Ajout manuel** via le service `suivi_colis.add_package` ou le bouton "+" de la carte
+- **Détection automatique du transporteur** à partir du format du numéro de suivi
+- **Scan IMAP** : détection automatique des numéros de suivi depuis les emails (boîte perso ou dédiée)
+- **Suppression automatique** des colis livrés après un délai configurable
+- **Carte Lovelace** incluse, s'enregistre automatiquement au démarrage
 
 ## Installation
 
-### HACS (recommended)
+### HACS (recommandé)
 
-1. Add this repository as a custom repository in HACS
-2. Install "Suivi de Colis"
-3. Restart Home Assistant
-4. Add integration via Settings > Integrations
+1. Ajouter ce dépôt comme dépôt personnalisé dans HACS
+2. Installer **Suivi de Colis**
+3. Redémarrer Home Assistant
+4. Ajouter l'intégration via **Paramètres → Intégrations**
 
-### Manual
+### Manuelle
 
-Copy `custom_components/suivi_colis/` to your `config/custom_components/` directory.
+Copier le dossier `custom_components/suivi_colis/` dans votre répertoire `config/custom_components/`.
 
 ## Configuration
 
-### Step 1 — 17track API Key
+### Étape 1 — Clé API 17track
 
 1. Créer un compte sur [api.17track.net](https://api.17track.net/register)
-2. Dans le dashboard 17track, aller dans **Settings > Security > API Key**
-3. Copier la clé API (commence par `XXXXXXXX...`)
+2. Dans le dashboard 17track, aller dans **Settings → Security → API Key**
+3. Copier la clé API
 
 Le plan gratuit donne 100 nouveaux trackings/mois avec mises à jour illimitées.
 
-### Step 2 — IMAP (optional)
+### Étape 2 — Email IMAP (optionnel)
 
-Configure an IMAP mailbox to auto-detect tracking numbers from shipping emails.
+Configurer une boîte mail IMAP pour détecter automatiquement les numéros de suivi depuis les emails de transporteurs.
+
+Deux modes disponibles :
+- **Boîte perso** (par défaut) : ne scanne que les emails provenant de transporteurs connus (Chronopost, Amazon, DHL…)
+- **Boîte dédiée** : scanne tous les emails reçus et extrait les numéros de suivi. Idéal si vous transférez vos notifications de livraison vers une adresse dédiée.
 
 ### Options
 
-- **Auto-archive delay**: Days after delivery before archiving (default: 3, 0 = disabled)
-- **Email check interval**: Minutes between IMAP checks (default: 15)
+- **Archivage automatique** : nombre de jours après livraison avant suppression (défaut : 2, 0 = désactivé)
+- **Intervalle de vérification emails** : en minutes (défaut : 15)
 
 ## Services
 
 | Service | Description |
 |---------|-------------|
-| `suivi_colis.add_package` | Add a tracking number |
-| `suivi_colis.remove_package` | Stop tracking a package |
-| `suivi_colis.refresh` | Force immediate refresh |
-| `suivi_colis.archive_delivered` | Archive all delivered packages |
+| `suivi_colis.add_package` | Ajouter un numéro de suivi |
+| `suivi_colis.remove_package` | Arrêter le suivi d'un colis |
+| `suivi_colis.refresh` | Forcer une mise à jour immédiate |
+| `suivi_colis.archive_delivered` | Archiver tous les colis livrés |
 
-### Example: Add a package
+### Exemple : ajouter un colis
 
 ```yaml
 service: suivi_colis.add_package
 data:
   tracking_number: "XX123456789FR"
   friendly_name: "Clavier MX Keys"
-  carrier: "chronopost"  # optional, auto-detected
+  carrier: "chronopost"  # optionnel, détecté automatiquement
 ```
 
-## Dashboard Card
+## Carte Lovelace
 
-Une carte Lovelace custom est incluse et s'enregistre automatiquement au démarrage.
+La carte custom s'enregistre automatiquement au démarrage de Home Assistant.
 
 1. Aller sur un dashboard → **Ajouter une carte**
 2. Chercher **"Suivi de Colis"** dans le picker
-3. Aucune configuration nécessaire — la carte détecte automatiquement les colis
+3. Aucune configuration nécessaire
 
-La carte affiche pour chaque colis : logo transporteur, numéro de suivi, statut coloré, dernière info et localisation. Un bouton **"+"** permet d'ajouter un colis directement depuis la carte.
+La carte affiche pour chaque colis : logo du transporteur, numéro de suivi, statut coloré, dernière info et localisation. Le bouton **"+"** permet d'ajouter un colis directement.
 
-## Supported Carriers
+## Transporteurs supportés
 
-Auto-detection works for: Chronopost, Colissimo, La Poste, DHL, UPS, Amazon, Cainiao/AliExpress.
+Détection automatique : Chronopost, Colissimo, La Poste, DHL, UPS, Amazon, Cainiao/AliExpress.
 
-All 1200+ carriers supported by 17track work when added manually.
+Tous les 1200+ transporteurs supportés par 17track fonctionnent en ajout manuel.
