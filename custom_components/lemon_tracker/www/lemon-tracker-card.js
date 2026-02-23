@@ -1,9 +1,9 @@
 /**
  * Lemon Tracker Card — Custom Lovelace card for package tracking
- * Auto-discovers sensor.lemon_tracker_* entities
+ * Auto-discovers Lemon Tracker entities by tracking_number attribute
  */
 
-const CARD_VERSION = "1.0.0";
+const CARD_VERSION = "1.0.1";
 
 // Status config: label, color, sort order
 const STATUS_CONFIG = {
@@ -64,7 +64,9 @@ class LemonTrackerCard extends HTMLElement {
     const packages = [];
     for (const [entityId, state] of Object.entries(this._hass.states)) {
       if (
-        entityId.startsWith("sensor.lemon_tracker_") &&
+        entityId.startsWith("sensor.") &&
+        state.attributes.tracking_number &&
+        state.attributes.carrier !== undefined &&
         state.state !== "unavailable"
       ) {
         packages.push({

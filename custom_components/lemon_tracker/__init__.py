@@ -20,7 +20,7 @@ from .store import LemonTrackerStore
 _LOGGER = logging.getLogger(__name__)
 
 CARD_JS_URL = f"/lemon_tracker/lemon-tracker-card.js"
-CARD_JS_VERSION = "1.0.0"
+CARD_JS_VERSION = "1.0.1"
 
 PLATFORMS = ["sensor"]
 
