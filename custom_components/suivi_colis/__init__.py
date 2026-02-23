@@ -9,7 +9,8 @@ import aiohttp
 import voluptuous as vol
 from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
+from homeassistant.core import Event, HomeAssistant, ServiceCall
 from homeassistant.helpers import config_validation as cv
 
 from .api_17track import Api17TrackClient
@@ -52,9 +53,16 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
         [StaticPathConfig(CARD_JS_URL, str(www_path / "suivi-colis-card.js"), cache_headers=False)]
     )
 
-    # Auto-register Lovelace resource (storage mode only)
+    # Register Lovelace resource after HA is fully started (resources not ready earlier)
     url = f"{CARD_JS_URL}?v={CARD_JS_VERSION}"
-    await _async_register_lovelace_resource(hass, url)
+
+    async def _register_on_start(event: Event) -> None:
+        await _async_register_lovelace_resource(hass, url)
+
+    if hass.is_running:
+        await _async_register_lovelace_resource(hass, url)
+    else:
+        hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STARTED, _register_on_start)
 
     return True
 
@@ -62,9 +70,20 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
 async def _async_register_lovelace_resource(hass: HomeAssistant, url: str) -> None:
     """Register the card JS as a Lovelace resource if not already present."""
     try:
-        resources = hass.data.get("lovelace", {}).get("resources")
+        lovelace_data = hass.data.get("lovelace")
+        if lovelace_data is None:
+            _LOGGER.warning("Lovelace not available, add resource manually: %s", url)
+            return
+
+        # lovelace_data can be a dict or object with resources attribute
+        resources = None
+        if isinstance(lovelace_data, dict):
+            resources = lovelace_data.get("resources")
+        elif hasattr(lovelace_data, "resources"):
+            resources = lovelace_data.resources
+
         if resources is None:
-            _LOGGER.debug("Lovelace resources not available (YAML mode?), skip auto-register")
+            _LOGGER.warning("Lovelace resources not available (YAML mode?), add manually: %s", url)
             return
 
         # Clean up old lemon_tracker resources and check if already registered
@@ -88,8 +107,8 @@ async def _async_register_lovelace_resource(hass: HomeAssistant, url: str) -> No
         if not found:
             await resources.async_create_item({"res_type": "module", "url": url})
             _LOGGER.info("Registered Suivi de Colis card resource: %s", url)
-    except Exception:
-        _LOGGER.warning("Could not auto-register Lovelace resource, add manually: %s", url)
+    except Exception as err:
+        _LOGGER.error("Could not auto-register Lovelace resource: %s — add manually: %s", err, url)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
