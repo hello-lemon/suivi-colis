@@ -30,7 +30,11 @@ Copy `custom_components/lemon_tracker/` to your `config/custom_components/` dire
 
 ### Step 1 — 17track API Key
 
-Get a free API key at [api.17track.net](https://api.17track.net). Free tier: 100 new trackings/month, unlimited updates.
+1. Créer un compte sur [api.17track.net](https://api.17track.net/register)
+2. Dans le dashboard 17track, aller dans **Settings > Security > API Key**
+3. Copier la clé API (commence par `XXXXXXXX...`)
+
+Le plan gratuit donne 100 nouveaux trackings/mois avec mises à jour illimitées.
 
 ### Step 2 — IMAP (optional)
 
@@ -62,31 +66,13 @@ data:
 
 ## Dashboard Card
 
-Markdown card template to list all active packages:
+Une carte Lovelace custom est incluse et s'enregistre automatiquement au démarrage.
 
-```yaml
-type: markdown
-title: Colis en cours
-content: >
-  {% set trackers = states.sensor | selectattr('entity_id', 'match', 'sensor.lemon_tracker_') | list %}
-  {% if trackers | length == 0 %}
-  Aucun colis en cours de suivi.
-  {% else %}
-  {% for s in trackers %}
-  {% set icon = '📦' %}
-  {% if s.state == 'in_transit' %}{% set icon = '🚚' %}
-  {% elif s.state == 'delivered' %}{% set icon = '✅' %}
-  {% elif s.state == 'out_for_delivery' %}{% set icon = '🏃' %}
-  {% elif s.state == 'exception' %}{% set icon = '⚠️' %}
-  {% elif s.state == 'available_for_pickup' %}{% set icon = '🏪' %}
-  {% endif %}
-  {{ icon }} **{{ s.attributes.friendly_name or s.name }}** — {{ s.attributes.carrier | upper }}
-  {{ s.attributes.info_text }}
-  {% if s.attributes.location %}📍 {{ s.attributes.location }}{% endif %}
-  `{{ s.attributes.tracking_number }}`
-  {% endfor %}
-  {% endif %}
-```
+1. Aller sur un dashboard → **Ajouter une carte**
+2. Chercher **"Lemon Tracker"** dans le picker
+3. Aucune configuration nécessaire — la carte détecte automatiquement les colis
+
+La carte affiche pour chaque colis : logo transporteur, numéro de suivi, statut coloré, dernière info et localisation. Un bouton **"+"** permet d'ajouter un colis directement depuis la carte.
 
 ## Supported Carriers
 
