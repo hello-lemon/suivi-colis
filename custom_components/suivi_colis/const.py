@@ -125,16 +125,3 @@ STATUS_ICONS = {
     "expired": "mdi:clock-alert",
     "not_found": "mdi:help-circle",
 }
-
-# 17track status code to our status mapping
-STATUS_17TRACK_MAP = {
-    0: "not_found",
-    10: "info_received",
-    20: "in_transit",
-    30: "expired",
-    35: "delivery_failure",
-    40: "out_for_delivery",
-    45: "available_for_pickup",
-    50: "delivered",
-    60: "exception",
-}

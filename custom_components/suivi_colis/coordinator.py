@@ -6,7 +6,6 @@ import logging
 from datetime import datetime, timedelta
 from functools import partial
 
-import aiohttp
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
@@ -27,7 +26,7 @@ from .const import (
     DEFAULT_UPDATE_INTERVAL,
     DOMAIN,
 )
-from .email_parser import ExtractedPackage, fetch_tracking_emails
+from .email_parser import ExtractedPackage
 from .models import Package, PackageSource, PackageStatus
 from .store import SuiviColisStore
 
@@ -297,14 +296,10 @@ def _run_imap_fetch(
                 sender = msg.from_ or ""
                 subject = msg.subject or ""
 
-                if dedicated:
-                    # Dedicated mailbox: parse ALL emails
-                    carrier_from_email = detect_carrier_from_email(sender)
-                else:
-                    # Personal mailbox: only process known carrier senders
-                    carrier_from_email = detect_carrier_from_email(sender)
-                    if carrier_from_email == "unknown":
-                        continue
+                carrier_from_email = detect_carrier_from_email(sender)
+                # Personal mailbox: only process known carrier senders
+                if not dedicated and carrier_from_email == "unknown":
+                    continue
 
                 # Extract tracking numbers — subject first, then body
                 text = f"{subject}\n{msg.text or ''}\n{msg.html or ''}"

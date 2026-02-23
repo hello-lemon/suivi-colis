@@ -15,9 +15,8 @@ from .const import (
     API_17TRACK_REGISTER,
     API_17TRACK_STOPTRACK,
     CARRIER_17TRACK_CODE,
-    STATUS_17TRACK_MAP,
 )
-from .models import Package, PackageStatus, TrackingEvent
+from .models import PackageStatus, TrackingEvent
 
 _LOGGER = logging.getLogger(__name__)
 
