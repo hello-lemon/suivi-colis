@@ -3,7 +3,7 @@
  * Auto-discovers Suivi de Colis entities by tracking_number attribute
  */
 
-const CARD_VERSION = "1.0.1";
+const CARD_VERSION = "1.0.2";
 
 // Status config: label, color, sort order
 const STATUS_CONFIG = {
@@ -36,11 +36,17 @@ class SuiviColisCard extends HTMLElement {
     this.attachShadow({ mode: "open" });
     this._showForm = false;
     this._inputValue = "";
+    this._rendered = false;
   }
 
   set hass(hass) {
     this._hass = hass;
-    this._render();
+    // If form is open, only update the packages list, not the whole DOM
+    if (this._rendered && this._showForm) {
+      this._updatePackagesOnly();
+    } else {
+      this._render();
+    }
   }
 
   setConfig(config) {
@@ -80,7 +86,6 @@ class SuiviColisCard extends HTMLElement {
         });
       }
     }
-    // Sort: active first (by order), delivered last
     packages.sort((a, b) => {
       const oa = (STATUS_CONFIG[a.status] || STATUS_CONFIG.unknown).order;
       const ob = (STATUS_CONFIG[b.status] || STATUS_CONFIG.unknown).order;
@@ -120,6 +125,33 @@ class SuiviColisCard extends HTMLElement {
       this._render();
     } catch (e) {
       console.error("Suivi de Colis: failed to add package", e);
+    }
+  }
+
+  // Partial update: only refresh the packages list without touching the form
+  _updatePackagesOnly() {
+    const container = this.shadowRoot.querySelector(".packages");
+    const emptyEl = this.shadowRoot.querySelector(".empty");
+    const packages = this._getPackages();
+
+    // Update count
+    const countEl = this.shadowRoot.querySelector(".count");
+    if (countEl) countEl.textContent = `${packages.length} colis`;
+
+    if (packages.length === 0) {
+      if (container) container.remove();
+      if (!emptyEl) {
+        const card = this.shadowRoot.querySelector("ha-card");
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = "Aucun colis suivi";
+        card.appendChild(empty);
+      }
+    } else {
+      if (emptyEl) emptyEl.remove();
+      if (container) {
+        container.innerHTML = packages.map((p) => this._renderPackage(p)).join("");
+      }
     }
   }
 
@@ -286,7 +318,7 @@ class SuiviColisCard extends HTMLElement {
         ${
           this._showForm
             ? `<div class="form-row">
-            <input type="text" id="tracking-input" placeholder="Numéro de suivi…" value="${this._inputValue}" />
+            <input type="text" id="tracking-input" placeholder="Numéro de suivi…" />
             <button class="btn-ok" id="btn-ok">Valider</button>
             <button class="btn-cancel" id="btn-cancel">Annuler</button>
           </div>`
@@ -300,10 +332,14 @@ class SuiviColisCard extends HTMLElement {
       </ha-card>
     `;
 
+    this._rendered = true;
+
     // Bind events
     this.shadowRoot.getElementById("add-toggle")?.addEventListener("click", () => this._toggleForm());
     const input = this.shadowRoot.getElementById("tracking-input");
     if (input) {
+      // Restore value if any
+      input.value = this._inputValue;
       input.addEventListener("input", (e) => (this._inputValue = e.target.value));
       input.addEventListener("keydown", (e) => {
         if (e.key === "Enter") this._addPackage();
@@ -319,8 +355,13 @@ class SuiviColisCard extends HTMLElement {
     const sc = STATUS_CONFIG[pkg.status] || STATUS_CONFIG.unknown;
     const iconUrl = this._getCarrierIcon(pkg.carrier);
     const carrierLabel = pkg.carrier !== "unknown" ? pkg.carrier.charAt(0).toUpperCase() + pkg.carrier.slice(1) : "";
-    const displayName = pkg.friendly_name || carrierLabel || pkg.tracking_number;
-    const showTracking = pkg.friendly_name || carrierLabel;
+
+    // Determine display name: use carrier label if available, otherwise tracking number
+    // Avoid showing tracking number as name if it would duplicate the tracking line
+    const displayName = carrierLabel || pkg.tracking_number;
+    // Only show tracking sub-line if the display name is NOT already the tracking number
+    const showTracking = displayName !== pkg.tracking_number;
+
     const infoLine = [this._truncate(pkg.info_text), pkg.location].filter(Boolean).join(" — ");
 
     return `
