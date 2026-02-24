@@ -110,6 +110,7 @@ CARRIER_17TRACK_CODE = {
     "ups": 100002,
     "amazon": 100143,
     "cainiao": 190271,
+    "colisprive": 100027,
 }
 
 # Status icon mapping

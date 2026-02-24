@@ -28,6 +28,7 @@ CARRIER_17TRACK_REVERSE = {
     100002: "ups",
     100143: "amazon",
     190271: "cainiao",
+    100027: "colisprive",
     # Common La Poste variants
     4015: "laposte",
     4016: "colissimo",
@@ -48,6 +49,7 @@ def _normalize_carrier_name(name: str) -> str:
         "cainiao": "cainiao",
         "aliexpress": "cainiao",
         "yanwen": "cainiao",
+        "colis priv": "colisprive",
     }.items():
         if keyword in name_lower:
             return carrier
