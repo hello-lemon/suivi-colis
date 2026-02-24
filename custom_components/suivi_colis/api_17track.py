@@ -140,6 +140,13 @@ class Api17TrackClient:
                     _LOGGER.debug("%s already registered on 17track", tracking_number)
                     return True
                 error_msg = error.get("message", "Unknown")
+                # If rejected with a carrier code, retry without it (let 17track auto-detect)
+                if carrier_code:
+                    _LOGGER.info(
+                        "17track rejected %s with carrier %s (%s), retrying without carrier",
+                        tracking_number, carrier, error_msg,
+                    )
+                    return await self.register_package(tracking_number, carrier="")
                 _LOGGER.warning(
                     "17track rejected %s: %s", tracking_number, error_msg
                 )
@@ -169,7 +176,7 @@ class Api17TrackClient:
 
         for item in accepted:
             number = item.get("number", "")
-            track_info = item.get("track_info", {})
+            track_info = item.get("track_info") or {}
             output[number] = self._parse_track_data(track_info)
 
         return output
@@ -190,13 +197,13 @@ class Api17TrackClient:
         }
 
         # Parse latest status
-        latest_status = track_info.get("latest_status", {})
+        latest_status = track_info.get("latest_status") or {}
         status_str = latest_status.get("status", "NotFound")
         status = status_map.get(status_str, PackageStatus.UNKNOWN)
 
         # Parse events from all providers
         events: list[TrackingEvent] = []
-        tracking = track_info.get("tracking", {})
+        tracking = track_info.get("tracking") or {}
         for provider in tracking.get("providers", []):
             for event_data in provider.get("events", []):
                 try:
@@ -225,7 +232,7 @@ class Api17TrackClient:
         events.sort(key=lambda e: e.timestamp, reverse=True)
 
         # Latest event info
-        latest_event = track_info.get("latest_event", {})
+        latest_event = track_info.get("latest_event") or {}
         info_text = latest_event.get("description", "")
         if not info_text and events:
             info_text = events[0].description

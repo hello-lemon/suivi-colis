@@ -125,8 +125,8 @@ class SuiviColisCoordinator(DataUpdateCoordinator[dict[str, Package]]):
             pkg.location = data["location"]
             pkg.events = data["events"]
             pkg.last_updated = now
-            # Update carrier from 17track if we didn't know it
-            if data.get("carrier") and (pkg.carrier == "unknown" or not pkg.carrier):
+            # Update carrier from 17track (always trust API over local detection)
+            if data.get("carrier"):
                 pkg.carrier = data["carrier"]
 
             if pkg.status == PackageStatus.DELIVERED and old_status != PackageStatus.DELIVERED:
@@ -277,7 +277,7 @@ def _run_imap_fetch(
     known_numbers: set[str],
 ) -> list[ExtractedPackage]:
     """Synchronous wrapper for IMAP fetch (runs in executor)."""
-    from imap_tools import AND, MailBox, MailBoxTls
+    from imap_tools import AND, MailBox
     from datetime import datetime as dt, timedelta as td
     import re
 
@@ -288,8 +288,7 @@ def _run_imap_fetch(
     since_date = (dt.now() - td(hours=24)).date()
 
     try:
-        box_class = MailBox if ssl else MailBoxTls
-        with box_class(server, port) as mailbox:
+        with MailBox(server, port, starttls=not ssl) as mailbox:
             mailbox.login(user, password, initial_folder=folder)
 
             for msg in mailbox.fetch(AND(date_gte=since_date), limit=50, reverse=True):
