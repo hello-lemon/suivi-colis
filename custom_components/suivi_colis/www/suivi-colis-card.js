@@ -146,12 +146,16 @@ class SuiviColisCard extends HTMLElement {
 
   async _removePackage(trackingNumber) {
     if (!this._hass) return;
+    // Optimistic: hide immediately
+    const el = this.shadowRoot.querySelector(`.package[data-tracking="${trackingNumber}"]`);
+    if (el) el.style.display = "none";
     try {
       await this._hass.callService("suivi_colis", "remove_package", {
         tracking_number: trackingNumber,
       });
     } catch (e) {
       console.error("Suivi de Colis: failed to remove package", e);
+      if (el) el.style.display = "";
     }
   }
 
@@ -445,7 +449,7 @@ class SuiviColisCard extends HTMLElement {
     const isDelivered = pkg.status === "delivered";
 
     return `
-      <div class="package">
+      <div class="package" data-tracking="${pkg.tracking_number}">
         ${
           iconUrl
             ? `<img class="carrier-icon" src="${iconUrl}" alt="${pkg.carrier}" />`
