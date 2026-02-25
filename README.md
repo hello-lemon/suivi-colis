@@ -2,16 +2,17 @@
 
 Intégration Home Assistant pour le suivi de colis via l'[API 17track v2.2](https://api.17track.net).
 
-Suivi de plus de 1200 transporteurs (Chronopost, Colissimo, DHL, UPS, Amazon, Cainiao…) avec détection automatique depuis les emails.
+Suivi de plus de 1200 transporteurs (Chronopost, Colissimo, DHL, UPS, Amazon, Cainiao, Colis Privé…) avec détection automatique depuis les emails.
 
 ## Fonctionnalités
 
 - **1 capteur par colis** : statut, localisation, transporteur, historique des événements
 - **Ajout manuel** via le service `suivi_colis.add_package` ou le bouton "+" de la carte
-- **Détection automatique du transporteur** à partir du format du numéro de suivi
+- **Sélecteur de transporteur** : choix manuel ou détection automatique
+- **Détection automatique du transporteur** à partir du format du numéro de suivi, avec fallback auto-détection 17track si rejeté
 - **Scan IMAP** : détection automatique des numéros de suivi depuis les emails (boîte perso ou dédiée)
 - **Suppression automatique** des colis livrés après un délai configurable
-- **Carte Lovelace** incluse, s'enregistre automatiquement au démarrage
+- **Carte Lovelace** incluse avec historique dépliable au clic et suppression des colis livrés
 
 ## Installation
 
@@ -76,10 +77,15 @@ La carte custom s'enregistre automatiquement au démarrage de Home Assistant.
 2. Chercher **"Suivi de Colis"** dans le picker
 3. Aucune configuration nécessaire
 
-La carte affiche pour chaque colis : logo du transporteur, numéro de suivi, statut coloré, dernière info et localisation. Le bouton **"+"** permet d'ajouter un colis directement.
+La carte affiche pour chaque colis :
+- Logo du transporteur, nom, numéro de suivi
+- Statut coloré et dernière info/localisation
+- **Clic sur un colis** : déplie l'historique complet des événements
+- **Bouton "+"** : ajouter un colis avec sélecteur de transporteur (Auto, La Poste, Chronopost, UPS, DHL, AliExpress, Colis Privé)
+- **Bouton "x"** sur les colis livrés : suppression manuelle
 
 ## Transporteurs supportés
 
-Détection automatique : Chronopost, Colissimo, La Poste, DHL, UPS, Amazon, Cainiao/AliExpress.
+Détection automatique : Chronopost, Colissimo, La Poste, DHL, UPS, Amazon, Cainiao/AliExpress, Colis Privé.
 
 Tous les 1200+ transporteurs supportés par 17track fonctionnent en ajout manuel.
