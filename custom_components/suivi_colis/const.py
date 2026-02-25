@@ -1,5 +1,7 @@
 """Constants for Suivi de Colis."""
 
+import re
+
 DOMAIN = "suivi_colis"
 STORAGE_KEY = "suivi_colis_packages"
 STORAGE_VERSION = 1
@@ -35,30 +37,30 @@ API_17TRACK_RATE_LIMIT = 3  # req/sec
 # Carrier regex patterns (for manual add detection)
 CARRIER_REGEX = {
     "chronopost": [
-        r"^[A-Z]{2}\d{9}FR$",      # XX123456789FR
-        r"^\d{13}$",                 # 13 digits
+        re.compile(r"^[A-Z]{2}\d{9}FR$"),      # XX123456789FR
+        re.compile(r"^\d{13}$"),                 # 13 digits
     ],
     "colissimo": [
-        r"^6[A-Z]\d{11}$",          # 6X12345678901
-        r"^[0-9]{15}$",             # 15 digits (Colissimo international)
+        re.compile(r"^6[A-Z]\d{11}$"),          # 6X12345678901
+        re.compile(r"^[0-9]{15}$"),             # 15 digits (Colissimo international)
     ],
     "ups": [
-        r"^1Z[A-Z0-9]{16}$",        # 1Z + 16 chars
+        re.compile(r"^1Z[A-Z0-9]{16}$"),        # 1Z + 16 chars
     ],
     "amazon": [
-        r"^TBA\d{12,}$",            # TBA + digits
+        re.compile(r"^TBA\d{12,}$"),            # TBA + digits
     ],
     "cainiao": [
-        r"^L[RPT][A-Z0-9]{7,9}[A-Z]{2}$",  # LR/LP/LT...XX
-        r"^YANWEN\d+$",
+        re.compile(r"^L[RPT][A-Z0-9]{7,9}[A-Z]{2}$"),  # LR/LP/LT...XX
+        re.compile(r"^YANWEN\d+$"),
     ],
     "dhl": [
-        r"^\d{10,11}$",             # 10-11 digits (also matches others)
-        r"^JJD\d{18}$",             # JJD + 18 digits
-        r"^\d{3}-\d{8}$",           # DHL Express
+        re.compile(r"^\d{10,11}$"),             # 10-11 digits (also matches others)
+        re.compile(r"^JJD\d{18}$"),             # JJD + 18 digits
+        re.compile(r"^\d{3}-\d{8}$"),           # DHL Express
     ],
     "laposte": [
-        r"^[A-Z]{2}\d{9}FR$",       # Same as Chronopost (resolved by context)
+        re.compile(r"^[A-Z]{2}\d{9}FR$"),       # Same as Chronopost (resolved by context)
     ],
 }
 
@@ -91,14 +93,14 @@ EMAIL_DOMAIN_CARRIER_MAP = {
 
 # Tracking number regex for extraction from emails
 TRACKING_NUMBER_PATTERNS = [
-    r"(?:suivi|tracking|n[°o]?\s*(?:de\s+)?colis|shipment)\s*[:=]?\s*([A-Z0-9]{10,30})",
-    r"(?:track|suivre)[^\n]*?([A-Z0-9]{10,30})",
-    r"\b(1Z[A-Z0-9]{16})\b",           # UPS
-    r"\b(TBA\d{12,})\b",               # Amazon
-    r"\b([A-Z]{2}\d{9}FR)\b",          # Chronopost/Colissimo
-    r"\b(6[A-Z]\d{11})\b",             # Colissimo
-    r"\b(L[RPT][A-Z0-9]{7,9}[A-Z]{2})\b",  # Cainiao
-    r"\b(JJD\d{18})\b",                # DHL
+    re.compile(r"(?:suivi|tracking|n[°o]?\s*(?:de\s+)?colis|shipment)\s*[:=]?\s*([A-Z0-9]{10,30})", re.IGNORECASE),
+    re.compile(r"(?:track|suivre)[^\n]*?([A-Z0-9]{10,30})", re.IGNORECASE),
+    re.compile(r"\b(1Z[A-Z0-9]{16})\b", re.IGNORECASE),           # UPS
+    re.compile(r"\b(TBA\d{12,})\b", re.IGNORECASE),               # Amazon
+    re.compile(r"\b([A-Z]{2}\d{9}FR)\b", re.IGNORECASE),          # Chronopost/Colissimo
+    re.compile(r"\b(6[A-Z]\d{11})\b", re.IGNORECASE),             # Colissimo
+    re.compile(r"\b(L[RPT][A-Z0-9]{7,9}[A-Z]{2})\b", re.IGNORECASE),  # Cainiao
+    re.compile(r"\b(JJD\d{18})\b", re.IGNORECASE),                # DHL
 ]
 
 # 17track carrier codes mapping

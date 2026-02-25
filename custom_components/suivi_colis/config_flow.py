@@ -9,6 +9,7 @@ import aiohttp
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import callback
+from homeassistant.helpers import selector
 
 from .api_17track import Api17TrackClient, Api17TrackError
 from .const import (
@@ -71,7 +72,9 @@ class SuiviColisConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="user",
             data_schema=vol.Schema(
                 {
-                    vol.Required(CONF_API_KEY): str,
+                    vol.Required(CONF_API_KEY): selector.TextSelector(
+                        selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD)
+                    ),
                 }
             ),
             errors=errors,
@@ -146,7 +149,9 @@ class SuiviColisConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     vol.Optional(CONF_IMAP_SERVER, default=""): str,
                     vol.Optional(CONF_IMAP_PORT, default=DEFAULT_IMAP_PORT): int,
                     vol.Optional(CONF_IMAP_USER, default=""): str,
-                    vol.Optional(CONF_IMAP_PASSWORD, default=""): str,
+                    vol.Optional(CONF_IMAP_PASSWORD, default=""): selector.TextSelector(
+                        selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD)
+                    ),
                     vol.Optional(
                         CONF_IMAP_FOLDER, default=DEFAULT_IMAP_FOLDER
                     ): str,
@@ -274,7 +279,9 @@ class SuiviColisOptionsFlow(config_entries.OptionsFlow):
                     vol.Optional(
                         CONF_IMAP_PASSWORD,
                         default=current.get(CONF_IMAP_PASSWORD, ""),
-                    ): str,
+                    ): selector.TextSelector(
+                        selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD)
+                    ),
                     vol.Optional(
                         CONF_IMAP_FOLDER,
                         default=current.get(CONF_IMAP_FOLDER, DEFAULT_IMAP_FOLDER),
