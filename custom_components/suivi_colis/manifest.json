@@ -9,5 +9,5 @@
   "issue_tracker": "https://github.com/hello-lemon/suivi-colis/issues",
   "dependencies": ["frontend", "http"],
   "requirements": ["imap-tools>=1.7.0"],
-  "version": "1.0.1"
+  "version": "1.0.2"
 }
