@@ -3,7 +3,7 @@
  * Auto-discovers Suivi de Colis entities by tracking_number attribute
  */
 
-const CARD_VERSION = "1.1.0";
+const CARD_VERSION = "1.2.0";
 
 // Status config: label, color, sort order
 const STATUS_CONFIG = {
@@ -49,12 +49,13 @@ class SuiviColisCard extends HTMLElement {
     this._showForm = false;
     this._inputValue = "";
     this._carrierValue = "";
+    this._expandedPackage = null;
     this._rendered = false;
   }
 
   set hass(hass) {
     this._hass = hass;
-    if (this._rendered && this._showForm) {
+    if (this._rendered && (this._showForm || this._expandedPackage)) {
       this._updatePackagesOnly();
     } else {
       this._render();
@@ -95,6 +96,7 @@ class SuiviColisCard extends HTMLElement {
           friendly_name: state.attributes.friendly_name || "",
           info_text: state.attributes.info_text || "",
           location: state.attributes.location || "",
+          events: state.attributes.events || [],
         });
       }
     }
@@ -123,6 +125,12 @@ class SuiviColisCard extends HTMLElement {
     this._showForm = !this._showForm;
     this._inputValue = "";
     this._carrierValue = "";
+    this._expandedPackage = null;
+    this._render();
+  }
+
+  _toggleExpand(trackingNumber) {
+    this._expandedPackage = this._expandedPackage === trackingNumber ? null : trackingNumber;
     this._render();
   }
 
@@ -371,6 +379,43 @@ class SuiviColisCard extends HTMLElement {
             color: var(--lt-secondary);
             font-size: 14px;
           }
+          .package-clickable {
+            cursor: pointer;
+          }
+          .events {
+            padding: 8px 0 4px 36px;
+          }
+          .event {
+            display: flex;
+            gap: 10px;
+            padding: 5px 0;
+            font-size: 12px;
+            color: var(--lt-secondary);
+            border-left: 2px solid var(--lt-border);
+            padding-left: 10px;
+            margin-left: 2px;
+          }
+          .event:first-child {
+            color: var(--lt-text);
+            font-weight: 500;
+          }
+          .event-date {
+            flex-shrink: 0;
+            min-width: 90px;
+            white-space: nowrap;
+          }
+          .event-desc {
+            flex: 1;
+            min-width: 0;
+          }
+          .event-loc {
+            flex-shrink: 0;
+            font-style: italic;
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
         </style>
         <div class="header">
           <div style="display:flex;align-items:baseline;">
@@ -431,8 +476,15 @@ class SuiviColisCard extends HTMLElement {
   _bindPackageEvents() {
     this.shadowRoot.querySelectorAll(".remove-btn").forEach((btn) => {
       btn.addEventListener("click", (e) => {
+        e.stopPropagation();
         const tracking = e.currentTarget.dataset.tracking;
         if (tracking) this._removePackage(tracking);
+      });
+    });
+    this.shadowRoot.querySelectorAll(".package-clickable").forEach((el) => {
+      el.addEventListener("click", () => {
+        const tracking = el.dataset.expand;
+        if (tracking) this._toggleExpand(tracking);
       });
     });
   }
@@ -447,22 +499,41 @@ class SuiviColisCard extends HTMLElement {
 
     const infoLine = [this._truncate(pkg.info_text), pkg.location].filter(Boolean).join(" \u2014 ");
     const isDelivered = pkg.status === "delivered";
+    const isExpanded = this._expandedPackage === pkg.tracking_number;
+    const hasEvents = pkg.events && pkg.events.length > 0;
+
+    let eventsHtml = "";
+    if (isExpanded && hasEvents) {
+      eventsHtml = `<div class="events">${pkg.events.map((e) => {
+        const d = new Date(e.time);
+        const dateStr = d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" });
+        const timeStr = d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+        return `<div class="event">
+          <span class="event-date">${dateStr} ${timeStr}</span>
+          <span class="event-desc">${this._truncate(e.description, 80)}</span>
+          ${e.location ? `<span class="event-loc">${e.location}</span>` : ""}
+        </div>`;
+      }).join("")}</div>`;
+    }
 
     return `
       <div class="package" data-tracking="${pkg.tracking_number}">
-        ${
-          iconUrl
-            ? `<img class="carrier-icon" src="${iconUrl}" alt="${pkg.carrier}" />`
-            : `<div class="carrier-icon-placeholder">?</div>`
-        }
-        <div class="info">
-          <div class="name">${displayName}</div>
-          ${showTracking ? `<div class="tracking">${pkg.tracking_number}</div>` : ""}
-          ${infoLine ? `<div class="detail">${infoLine}</div>` : ""}
+        <div class="package-clickable" data-expand="${pkg.tracking_number}" style="display:flex;align-items:flex-start;gap:12px;flex:1;min-width:0;">
+          ${
+            iconUrl
+              ? `<img class="carrier-icon" src="${iconUrl}" alt="${pkg.carrier}" />`
+              : `<div class="carrier-icon-placeholder">?</div>`
+          }
+          <div class="info">
+            <div class="name">${displayName}</div>
+            ${showTracking ? `<div class="tracking">${pkg.tracking_number}</div>` : ""}
+            ${infoLine ? `<div class="detail">${infoLine}</div>` : ""}
+          </div>
         </div>
         <span class="chip" style="background:${sc.color}">${sc.label}</span>
         ${isDelivered ? `<button class="remove-btn" data-tracking="${pkg.tracking_number}" title="Supprimer">\u2715</button>` : ""}
       </div>
+      ${eventsHtml}
     `;
   }
 }

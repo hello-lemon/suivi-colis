@@ -116,6 +116,14 @@ class SuiviColisSensor(CoordinatorEntity[SuiviColisCoordinator], SensorEntity):
             "last_updated": pkg.last_updated.isoformat() if pkg.last_updated else None,
             "delivered_at": pkg.delivered_at.isoformat() if pkg.delivered_at else None,
             "events_count": len(pkg.events),
+            "events": [
+                {
+                    "time": e.timestamp.isoformat(),
+                    "description": e.description,
+                    "location": e.location,
+                }
+                for e in pkg.events
+            ],
         }
 
         if pkg.last_event:
