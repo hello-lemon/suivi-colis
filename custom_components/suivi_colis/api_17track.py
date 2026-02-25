@@ -165,21 +165,32 @@ class Api17TrackClient:
         if not tracking_numbers:
             return {}
 
-        items = [{"number": n} for n in tracking_numbers]
-        result = await self._request(API_17TRACK_GETTRACKINFO, items)
-
-        if result.get("code") != 0:
-            _LOGGER.error("17track gettrackinfo error: %s", result)
-            return {}
-
-        data = result.get("data", {})
-        accepted = data.get("accepted", [])
         output: dict[str, dict] = {}
+        chunk_size = 40
 
-        for item in accepted:
-            number = item.get("number", "")
-            track_info = item.get("track_info") or {}
-            output[number] = self._parse_track_data(track_info)
+        for i in range(0, len(tracking_numbers), chunk_size):
+            chunk = tracking_numbers[i : i + chunk_size]
+            items = [{"number": n} for n in chunk]
+
+            try:
+                result = await self._request(API_17TRACK_GETTRACKINFO, items)
+            except Api17TrackRateLimited:
+                raise
+            except Api17TrackError as err:
+                _LOGGER.error("17track gettrackinfo chunk error: %s", err)
+                continue
+
+            if result.get("code") != 0:
+                _LOGGER.error("17track gettrackinfo error: %s", result)
+                continue
+
+            data = result.get("data", {})
+            accepted = data.get("accepted", [])
+
+            for item in accepted:
+                number = item.get("number", "")
+                track_info = item.get("track_info") or {}
+                output[number] = self._parse_track_data(track_info)
 
         return output
 

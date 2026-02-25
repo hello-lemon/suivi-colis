@@ -11,6 +11,9 @@ from .const import (
 )
 from .models import Carrier
 
+# Compiled regex for email extraction
+EMAIL_PATTERN = re.compile(r"<([^>]+)>")
+
 
 def detect_carrier_from_number(tracking_number: str) -> str:
     """Detect carrier from tracking number using regex patterns."""
@@ -20,7 +23,7 @@ def detect_carrier_from_number(tracking_number: str) -> str:
     # Order matters: more specific patterns first
     for carrier in ["ups", "amazon", "cainiao", "colissimo", "chronopost", "dhl"]:
         for pattern in CARRIER_REGEX.get(carrier, []):
-            if re.match(pattern, number):
+            if pattern.match(number):
                 return carrier
 
     return Carrier.UNKNOWN
@@ -31,7 +34,7 @@ def detect_carrier_from_email(sender: str) -> str:
     sender = sender.strip().lower()
 
     # Extract email from "Name <email>" format
-    match = re.search(r"<([^>]+)>", sender)
+    match = EMAIL_PATTERN.search(sender)
     if match:
         sender = match.group(1).lower()
 
