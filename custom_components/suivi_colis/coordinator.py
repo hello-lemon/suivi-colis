@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from functools import partial
 
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .api_17track import Api17TrackClient, Api17TrackError, Api17TrackRateLimited
@@ -187,6 +188,7 @@ class SuiviColisCoordinator(DataUpdateCoordinator[dict[str, Package]]):
 
         for number in to_remove:
             self.store.remove_package(number)
+            self._remove_entity(number)
             try:
                 await self.api_client.stop_tracking(number)
             except Api17TrackError as err:
@@ -236,6 +238,15 @@ class SuiviColisCoordinator(DataUpdateCoordinator[dict[str, Package]]):
         await self.async_request_refresh()
         return True
 
+    def _remove_entity(self, tracking_number: str) -> None:
+        """Remove the entity from HA entity registry."""
+        registry = er.async_get(self.hass)
+        entity_id = registry.async_get_entity_id(
+            "sensor", DOMAIN, f"{DOMAIN}_{tracking_number}"
+        )
+        if entity_id:
+            registry.async_remove(entity_id)
+
     async def remove_package(self, tracking_number: str) -> bool:
         """Remove a package and stop tracking on 17track."""
         tracking_number = tracking_number.strip().upper()
@@ -249,6 +260,7 @@ class SuiviColisCoordinator(DataUpdateCoordinator[dict[str, Package]]):
         except Api17TrackError as err:
             _LOGGER.warning("Failed to stop 17track for %s: %s", tracking_number, err)
 
+        self._remove_entity(tracking_number)
         await self.store.async_save()
         await self.async_request_refresh()
         return True
