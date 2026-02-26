@@ -3,7 +3,7 @@
  * Auto-discovers Suivi de Colis entities by tracking_number attribute
  */
 
-const CARD_VERSION = "1.2.0";
+const CARD_VERSION = "1.3.0";
 
 // Status config: label, color, sort order
 const STATUS_CONFIG = {
@@ -498,7 +498,6 @@ class SuiviColisCard extends HTMLElement {
     const showTracking = displayName !== pkg.tracking_number;
 
     const infoLine = [this._truncate(pkg.info_text), pkg.location].filter(Boolean).join(" \u2014 ");
-    const isDelivered = pkg.status === "delivered";
     const isExpanded = this._expandedPackage === pkg.tracking_number;
     const hasEvents = pkg.events && pkg.events.length > 0;
 
@@ -531,7 +530,7 @@ class SuiviColisCard extends HTMLElement {
           </div>
         </div>
         <span class="chip" style="background:${sc.color}">${sc.label}</span>
-        ${isDelivered ? `<button class="remove-btn" data-tracking="${pkg.tracking_number}" title="Supprimer">\u2715</button>` : ""}
+        <button class="remove-btn" data-tracking="${pkg.tracking_number}" title="Supprimer">\u2715</button>
       </div>
       ${eventsHtml}
     `;

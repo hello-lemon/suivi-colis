@@ -21,7 +21,7 @@ from .store import SuiviColisStore
 _LOGGER = logging.getLogger(__name__)
 
 CARD_JS_URL = "/suivi_colis/suivi-colis-card.js"
-CARD_JS_VERSION = "1.0.1"
+CARD_JS_VERSION = "1.3.0"
 
 PLATFORMS = ["sensor"]
 
